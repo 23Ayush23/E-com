@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #28a745;
+            text-align: center;
+        }
+        h3 {
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 8px;
+            margin-top: 20px;
+        }
+        p {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .order-details, .address-details, .items-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .order-details p, .address-details p, .items-list p {
+            margin: 5px 0;
+        }
+        .footer {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Thank You for Your Order!</h2>
+        <p style="text-align: center;">Your order has been placed successfully.</p>
+
+        <h3>Order Details</h3>
+        <div class="order-details">
+            <p><strong>Customer Name:</strong> {{firstname}} {{lastname}}</p>
+            <p><strong>Order ID:</strong> {{_id}}</p>
+            <p><strong>Payment Method:</strong> {{paymentMethod}}</p>
+            <p><strong>Total Amount:</strong> ${{amount}}</p>
+        </div>
+
+        <h3>Shipping Address</h3>
+        <div class="address-details">
+            <p><strong>Street:</strong> {{street}}</p>
+            <p><strong>City:</strong> {{city}}</p>
+            <p><strong>State:</strong> {{state}}</p>
+            <p><strong>Zip Code:</strong> {{zipcode}}</p>
+            <p><strong>Country:</strong> {{country}}</p>
+        </div>
+
+        <h3>Items Ordered</h3>
+        <div class="items-list">
+            {{#each items}}
+                <p><strong>Product:</strong> {{name}} | <strong>Quantity:</strong> {{quantity}} | <strong>Price:</strong> ${{price}}</p>
+            {{/each}}
+        </div>
+
+        <p class="footer">We will notify you once your order is shipped. If you have any questions, feel free to contact our support team.</p>
+    </div>
+</body>
+</html>

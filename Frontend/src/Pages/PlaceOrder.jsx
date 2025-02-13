@@ -38,39 +38,6 @@ const PlaceOrder = () => {
     setFormdata((data) => ({ ...data, [name]: value }));
   };
 
-  // Gathering razorpay order in one variable
-
-  const initPay = (order) => {
-
-    const options = {
-      key: importScripts.meta.env.VITE_RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: order.currency,
-      name: 'order PAYMENT',
-      description: 'order PAYMENT',
-      order_id: order._id,
-      receipt: order.receipt,
-      hanfler: async (response) => {
-        console.log(response);
-        try {
-          
-          const {data} = await axios.post(backendUrl + '/api/order/verifyRazorpay',response,{headers:{token}})
-          if(data.success)
-          {
-            navigate('/order')
-            setcartItems({})
-          }
-        } catch (error) {
-          console.log(error);
-          toast.error(error)
-          
-        }
-      }
-    }
-
-    const rzp = new window.Razorpay(options)
-    rzp.open()
-  }
 
   const onSubmithandler = async (event) => {
     event.preventDefault();
@@ -107,7 +74,7 @@ const PlaceOrder = () => {
         items: orderItems,
         amount: getCartAmount() + delivery_fee,
       };
-      console.log(orderData);
+      // console.log(orderData);
 
       switch (method) {
         case "cod":
@@ -117,7 +84,7 @@ const PlaceOrder = () => {
             orderData,
             { headers: { token } }
           );
-          console.log(response.data);
+          // console.log(response.data);
 
           if (response.data.success) {
             // Clean order cart
@@ -148,21 +115,6 @@ const PlaceOrder = () => {
             );
           }
           break;
-
-          case "razorpay":
-            // API call for Razorpay
-          const responseRazorpay = await axios.post(
-            backendUrl + "/api/order/razorpay",
-            orderData,
-            { headers: { token } }
-          );
-          
-          if(responseRazorpay.data.success)
-          {
-            initPay(responseRazorpay.data.order)
-          }
-          break;
-
         default:
           break;
       }
@@ -309,18 +261,6 @@ const PlaceOrder = () => {
                   }`}
                 ></p>
                 <img className="h-5 mx-4" src={assets.stripe_logo} alt="" />
-              </div>
-
-              <div
-                onClick={() => setMethod("razorpay")}
-                className="flex items-center gap-3 border p-2 px-3 cursor-pointer"
-              >
-                <p
-                  className={`min-w-3.5 h-3.5 border rounded-full ${
-                    method === "razorpay" ? "bg-green-500" : ""
-                  }`}
-                ></p>
-                <img className="h-5 mx-4" src={assets.razorpay_logo} alt="" />
               </div>
 
               <div

@@ -120,27 +120,29 @@ const ShopContextProvider = (props) => {
     }
 
 // function to display total amount
-    const getCartAmount =  () =>{
-        let totalAmount = 0;
+const getCartAmount = () => {
+    let totalAmount = 0;
 
-        for(const items in cartItems) //for each product
-        {
-            let iteminfo = products.find((product)=> product._id === items);
-            // calculating price based on Qty
-            for(const item in cartItems[items])
-            {
-                try {
-                    if(cartItems[items][item] > 0)
-                    {
-                        totalAmount += iteminfo.price * cartItems[items][item] //qty
-                    }
-                } catch (error) {
-                    
+    for (const items in cartItems) { // for each product
+        let iteminfo = products.find((product) => product._id === items);
+
+        if (!iteminfo) continue; // Skip if item is not found
+
+        for (const item in cartItems[items]) {
+            try {
+                if (cartItems[items][item] > 0) {
+                    totalAmount += iteminfo.price * cartItems[items][item]; // qty
                 }
+            } catch (error) {
+                console.error("Error calculating total:", error);
             }
         }
-        return totalAmount;
     }
+
+    // Fix floating-point precision issue
+    return Math.floor(totalAmount * 10) / 10;  // Keeps one decimal place, truncates excess
+};
+
 
 // getProductdata function to get data from backend Api
     const getProductData = async () => {

@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 20px;
         }
@@ -15,32 +15,41 @@
             max-width: 600px;
             margin: auto;
             background: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         h2 {
             color: #28a745;
+            text-align: center;
         }
         h3 {
+            color: #333;
             border-bottom: 2px solid #ddd;
-            padding-bottom: 5px;
+            padding-bottom: 8px;
+            margin-top: 20px;
         }
         p {
             font-size: 16px;
-            color: #333;
+            color: #555;
+            line-height: 1.6;
         }
-        ul {
-            padding-left: 20px;
+        .order-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
         }
-        ul li {
-            font-size: 16px;
+        .order-details p {
             margin: 5px 0;
         }
         .footer {
-            margin-top: 20px;
+            margin-top: 25px;
             font-size: 14px;
-            color: #555;
+            color: #666;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
         }
     </style>
 </head>
@@ -48,18 +57,15 @@
 
     <div class="container">
         <h2>Thank You for Your Order!</h2>
-        <p>Your order has been placed successfully.</p>
+        <p style="text-align: center;">Your order has been placed successfully.</p>
 
         <h3>Order Details</h3>
-        <p><strong>Order ID:</strong> {{_id}}</p>
-        <p><strong>Payment Method:</strong> {{paymentMethod}}</p>
-        <p><strong>Total Amount:</strong> ${{amount}}</p>
-        <p><strong>Delivery Address:</strong> {{address}}</p>
-
-        <h3>Items Ordered</h3>
-        <ul>
-            {{items}}
-        </ul>
+        <div class="order-details">
+            <p><strong>Customer Name:</strong> {{firstname}} {{lastname}}</p>
+            <p><strong>Order ID:</strong> {{_id}}</p>
+            <p><strong>Payment Method:</strong> {{paymentMethod}}</p>
+            <p><strong>Total Amount:</strong> ${{amount}}</p>
+        </div>
 
         <p class="footer">We will notify you once your order is shipped. If you have any questions, feel free to contact our support team.</p>
     </div>

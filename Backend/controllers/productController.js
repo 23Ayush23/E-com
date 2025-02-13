@@ -141,5 +141,37 @@ const updateProduct = async (req, res) => {
     }
 };
 
-export { addProduct, removeProduct, listProducts, singleProductInfo, updateProduct };
+// Bestseller API
+const bestSeller = async (req,res) => {
+    try {
+        const bestSellers = await productModel.find({ bestseller: true }).sort({date: -1});
+    
+        if (!bestSellers.length) {
+          return res.status(404).json({ message: "No best-seller products found" });
+        }
+    
+        res.status(200).json(bestSellers);
+      } catch (error) {
+        console.error("Error fetching best sellers:", error);
+        res.status(500).json({ message: "Server error, please try again later" });
+      }
+}
+
+// Latest collection API
+const latestCollection = async (req,res) => {
+    try {
+        const latestProducts = await productModel.find().sort({date: -1});
+    
+        if (!latestProducts.length) {
+          return res.status(404).json({ message: "No best-seller products found" });
+        }
+    
+        res.status(200).json(latestProducts);
+      } catch (error) {
+        console.error("Error fetching best sellers:", error);
+        res.status(500).json({ message: "Server error, please try again later" });
+      }
+}
+
+export { addProduct, removeProduct, listProducts, singleProductInfo, updateProduct,bestSeller,latestCollection };
 

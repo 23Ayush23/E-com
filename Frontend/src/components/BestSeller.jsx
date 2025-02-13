@@ -1,42 +1,57 @@
-import React, { useContext, useEffect } from 'react'
-import { ShopContext } from '../context/ShopContext'
-import { useState } from 'react'
-import Title from './Title'
-import ProductItem from './ProductItem'
+import React, { useContext, useEffect, useState } from "react";
+import Title from "./Title";
+import ProductItem from "./ProductItem";
+import { ShopContext } from "../context/ShopContext";
 
 const BestSeller = () => {
+  const [bestSeller, setBestSeller] = useState([]);
+  const {backendUrl} = useContext(ShopContext)
 
-    //Accesing products from shopContext
-    const {products} = useContext(ShopContext)
-    const[bestSeller,setBestseller]=useState([])
+  // Fetch best-seller products from the backend
+  useEffect(() => {
+    const fetchBestSellers = async () => {
+      try {
+        const response = await fetch(backendUrl + "/api/product/bestseller"); // Backend API endpoint
+        if (!response.ok) throw new Error("Failed to fetch bestsellers");
 
-    // Whenevr Products updated Use Effect will work
-    useEffect(()=>{
-        if (products && Array.isArray(products)) {
+        const products = await response.json();
+        
+        // Filter best sellers and get only the top 5
+        const bestSellerProducts = products.filter((item) => item.bestseller);
+        setBestSeller(bestSellerProducts.slice(0, 5));
+      } catch (error) {
+        console.error("Error fetching best sellers:", error);
+      }
+    };
 
-        const BestSellerProducts=products.filter((item)=>(item.bestseller))
-        setBestseller(BestSellerProducts.slice(0,5))
-        }
-    },[products])
+    fetchBestSellers();
+  }, []);
+
   return (
-    <div className='my-10'>
-        <div className='text-center text-3xl py-8'>
-            <Title text1={'Best'} text2={'Sellers'}/>
-            <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base text-gray-600'>
-                    Lorem ipsum dolor sit amet consectetur.
-            </p>
+    <div className="my-10">
+      <div className="text-center text-3xl py-8">
+        <Title text1={"Best"} text2={"Sellers"} />
+        <p className="w-3/4 m-auto text-xs sm:text-sm md:text-base text-gray-600">
+        Discover our Best Sellers, featuring the hottest and most in-demand fashion pieces loved by our customers!
+         From trendy outfits to timeless classics,
+         these top-rated styles are must-haves for every wardrobe.
+        </p>
 
-            {/* Product Items of BestSellers */}
-                <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-6'>
-                {
-           bestSeller.map((item,index)=>(
-            <ProductItem key={index} id={item._id} image={item.image} name={item.name} price={item.price} />
-           ))
-             } 
-                </div>
+        {/* Product Items of BestSellers */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-6">
+          {bestSeller.map((item, index) => (
+            <ProductItem
+              key={index}
+              id={item._id}
+              image={item.image}
+              name={item.name}
+              price={item.price}
+            />
+          ))}
         </div>
+      </div>
     </div>
-  )
-}
+  );
+};
 
-export default BestSeller
+export default BestSeller;
