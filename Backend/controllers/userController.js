@@ -2,8 +2,11 @@ import validator from 'validator';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import userModel from "../models/userModel.js";
-import Nodemailer from '../config/nodemailer.js'
 import dotenv from 'dotenv'
+import SimpleNodemailer from '../config/simplenodemailer.js';
+import fs from "fs/promises";
+import { fileURLToPath } from "url";
+import path from 'path'
 
 
 
@@ -20,6 +23,10 @@ const RESET_SECRET = process.env.RESET_SECRET || 'bfbskhbkjsdkjfhsjdhfjshjk';
 const createToken = (id) => {
     return jwt.sign({ id }, JWT_SECRET, { expiresIn: '60d' }); // Use JWT_SECRET environment variable
 }
+
+const createAdminToken = (payload) => {
+    return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '60d' });
+  };
 
 // Send password reset link
 const sendPasswordLink = async (email) => {
@@ -154,25 +161,27 @@ const registerUser = async (req, res) => {
 // Admin login route
 const adminLogin = async (req, res) => {
     try {
-        const { email, password } = req.body;
-
-        if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
-            const token = jwt.sign(email + password, JWT_SECRET);
-            return res.json({ success: true, message: "Admin logged in!", token });
-        } else {
-            return res.json({ success: false, message: "Unauthorized user!" });
-        }
-
+      const { email, password } = req.body;
+      // Validate admin credentials from environment variables
+      if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+        // Create a token with admin credentials and expiration time
+        const token = createAdminToken({ email, password });
+        return res.json({ success: true, message: "Admin logged in!", token });
+      } else {
+        return res.status(401).json({ success: false, message: "Unauthorized user!" });
+      }
     } catch (error) {
-        console.log(error);
-        return res.json({ success: false, message: error.message });
+      console.log(error);
+      return res.status(500).json({ success: false, message: error.message });
     }
-}
+  };
 
 // Forgot password route
 
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
 
     if (!email) {
         return res.status(400).json({ success: false, message: "Email is required!" });
@@ -184,13 +193,15 @@ const forgotPassword = async (req, res) => {
         if (!response.success) {
             return res.status(404).json(response);
         }
+        
+        const templatePath = path.join(__dirname, "../EmailTemplates/resetPasswordlink.html");
 
         // Send email with reset link
-         Nodemailer(
+            await SimpleNodemailer(
             email,
             "Reset Your Password",
             "Click the link below to reset your password.",
-            "../EmailTemplates/resetPasswordlink.html",
+            templatePath,
             { resetLink: response.resetLink }
         );
 
@@ -231,4 +242,43 @@ const resetPassword = async (req, res) => {
     }
 }
 
-export { loginUser, registerUser, adminLogin, forgotPassword, resetPassword };
+const getUserData = async (req,res) => {
+    
+    try {
+        // Extract token from headers
+        const token = req.headers.token;
+        if (!token) {
+          return res.status(401).json({
+            success: false,
+            message: "Unauthorized: No token provided"
+          });
+        }
+    
+        // Verify token (ensure JWT_SECRET is set in your environment)
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        // Assuming the token contains the user id as "id"
+        const userId = decoded.id;
+    
+        // Find the user by id (all details including password and cartData)
+        const user = await userModel.findById(userId);
+        if (!user) {
+          return res.status(404).json({
+            success: false,
+            message: "User not found"
+          });
+        }
+    
+        return res.status(200).json({
+          success: true,
+          user
+        });
+      } catch (error) {
+        console.error("Error in getUserDetails:", error);
+        return res.status(500).json({
+          success: false,
+          message: error.message
+        });
+      }
+}
+
+export { loginUser, registerUser, adminLogin, forgotPassword, resetPassword,getUserData };

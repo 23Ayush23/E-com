@@ -62,14 +62,22 @@ const Order = () => {
 
             {/* Right: Status & Track Order */}
             <div className="flex flex-col md:flex-row md:items-center md:w-1/2 md:justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className={`w-3 h-3 rounded-full ${item.status === "Delivered" ? "bg-green-500" : "bg-yellow-400"}`}></span>
-                <p className="text-sm md:text-base font-medium">{item.status}</p>
-              </div>
-              <button onClick={loadOrderData} className="border px-5 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">
-                Track Order
-              </button>
-            </div>
+  <div className="flex items-center gap-2">
+    <span
+      className={`w-3 h-3 rounded-full ${
+        item.status === "Delivered" ? "bg-green-500" : "bg-yellow-400"
+      }`}
+    ></span>
+    <p className="text-sm md:text-base font-medium">{item.status}</p>
+  </div>
+  <button
+    onClick={loadOrderData}
+    className="border px-5 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition"
+  >
+    Track Order
+  </button>
+</div>
+
           </div>
         ))}
       </div>

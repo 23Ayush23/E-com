@@ -25,6 +25,11 @@ const productSchema = new  mongoose.Schema({
         type:String,
         required:true
     },
+    productStock:{
+        type:Number,
+        required:true,
+        default:0
+    },
     sizes:{
         type:Array,
         required:true

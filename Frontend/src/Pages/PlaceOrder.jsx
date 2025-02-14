@@ -35,104 +35,99 @@ const PlaceOrder = () => {
 
   const onChangehandler = (event) => {
     const { name, value } = event.target;
+
+    if (name === "phone") {
+      if (!/^\d*$/.test(value)) return;
+      if (value.length > 10) return; // Limit to 10 digits
+    }
+
     setFormdata((data) => ({ ...data, [name]: value }));
   };
 
-
   const onSubmithandler = async (event) => {
     event.preventDefault();
-
-    // Checking if the user is trying to pay without any items in the cart
-    const isCartEmpty = Object.keys(cartItems).length === 0;
-    if (isCartEmpty) {
-      toast.error(
-        "Your cart is empty. Please add items to your cart before proceeding."
-      );
+  
+    if (formData.phone.length !== 10) {
+      toast.error("Please enter a valid 10-digit phone number.");
       return;
     }
-
+    // Checking if the user is trying to pay without any items in the cart
+    if (Object.keys(cartItems).length === 0) {
+      toast.error("Your cart is empty. Please add items to your cart before proceeding.");
+      return;
+    }
+  
     try {
       let orderItems = [];
-
-      for (const items in cartItems) {
-        for (const item in cartItems[items]) {
-          if (cartItems[items][item] > 0) {
+  
+      // Loop through cartItems to construct orderItems
+      for (const productId in cartItems) {
+        for (const size in cartItems[productId]) { //  `size` is now correctly defined
+          if (cartItems[productId][size] > 0) {
             const itemInfo = structuredClone(
-              products.find((product) => product._id === items)
+              products.find((product) => product._id === productId)
             );
+  
             if (itemInfo) {
-              itemInfo.size = item;
-              itemInfo.quantity = cartItems[items][item];
+              itemInfo.size = size; //  Now `size` is correctly referenced
+              itemInfo.quantity = cartItems[productId][size]; //  Use `productId`
+              itemInfo.itemId = itemInfo._id; //  Assign correct `itemId`
+              delete itemInfo._id; // Remove `_id` if needed
               orderItems.push(itemInfo);
             }
           }
         }
       }
-
+  
       let orderData = {
         address: formData,
         items: orderItems,
         amount: getCartAmount() + delivery_fee,
       };
-      // console.log(orderData);
-
+  
       switch (method) {
         case "cod":
-          // API call for COD
           const response = await axios.post(
             backendUrl + "/api/order/place",
             orderData,
             { headers: { token } }
           );
-          // console.log(response.data);
-
+  
           if (response.data.success) {
-            // Clean order cart
             setcartItems({});
             navigate("/order");
           } else {
-            toast.error(
-              response.data?.error?.message || "Something went wrong"
-            );
+            toast.error(response.data?.error?.message || "Something went wrong");
           }
           break;
-
+  
         case "stripe":
-          // API call for Stripe
           const responseStripe = await axios.post(
             backendUrl + "/api/order/stripe",
             orderData,
             { headers: { token } }
           );
-          console.log(responseStripe.data);
-
+  
           if (responseStripe.data.success) {
-            const { session_url } = responseStripe.data;
-            window.location.replace(session_url);
+            window.location.replace(responseStripe.data.session_url);
           } else {
-            toast.error(
-              responseStripe.data?.error?.message || "Something went wrong"
-            );
+            toast.error(responseStripe.data?.error?.message || "Something went wrong");
           }
           break;
+  
         default:
           break;
       }
     } catch (error) {
       console.error(error);
-      // Safely access error message
-      const errorMessage =
-        error?.response?.data?.message ||
-        error?.message ||
-        "Something went wrong";
+      const errorMessage = error?.response?.data?.message || error?.message || "Something went wrong";
       toast.error(errorMessage);
-
-      // If error.response is undefined, log the error to the console
       if (!error?.response) {
         console.error("Error response is undefined:", error);
       }
     }
   };
+  
 
   return (
     <div>
@@ -230,14 +225,16 @@ const PlaceOrder = () => {
           </div>
 
           <input
-            onChange={onChangehandler}
-            name="phone"
-            value={formData.phone}
-            className="border border-gray-300 rounded py-1.5 px-3.5 w-full"
-            type="number"
-            placeholder="Contact Number"
-            required
-          />
+  onChange={onChangehandler}
+  name="phone"
+  value={formData.phone}
+  className="border border-gray-300 rounded py-1.5 px-3.5 w-full [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none appearance-none"
+  type="number" 
+  placeholder="Contact Number"
+  maxLength="10" // Ensure max length is 10
+  required
+/>
+
         </div>
 
         {/* ========== Cart Total =========== */}

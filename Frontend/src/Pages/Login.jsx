@@ -20,7 +20,7 @@ const Login = () => {
     event.preventDefault();
 
     try {
-      console.log(backendUrl, 'login');
+      // console.log(backendUrl, 'login');
 
       if (currState === 'Sign Up') {
         // Sign-up API call

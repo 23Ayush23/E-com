@@ -7,69 +7,60 @@
 import cloudinary from 'cloudinary'
 import productModel from '../models/productModel.js';
 // Add Product function
-const addProduct = async (req,res) => {
-    
+const addProduct = async (req, res) => {
     try {
-       
-        const {name,description,price,category,subCategory,sizes,bestseller} = req.body;
-        // Handling uncheked image
-            // req.file.image1 if field is available then add image at first index
-        const image1 = req.files.image1 && req.files.image1[0]
-        const image2 = req.files.image2 && req.files.image2[0]
-        const image3 = req.files.image3 && req.files.image3[0]
-        const image4 = req.files.image4 && req.files.image4[0]
+        const { name, description, price, category, subCategory, sizes, bestseller, productStock } = req.body;
 
-        // filtering uploaded images only in images array
-        const images = [image1,image2,image3,image4].filter((item)=> item !== undefined) 
+        // Handling unchecked image
+        const image1 = req.files.image1 && req.files.image1[0];
+        const image2 = req.files.image2 && req.files.image2[0];
+        const image3 = req.files.image3 && req.files.image3[0];
+        const image4 = req.files.image4 && req.files.image4[0];
 
-        // uploading on cloudinary / Getting imageurl in imageUrl array
+        // Filtering only uploaded images
+        const images = [image1, image2, image3, image4].filter((item) => item !== undefined);
 
+        // Check if product already exists (case-insensitive)
         const existingProduct = await productModel.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
 
         if (existingProduct) {
             return res.status(400).json({ success: false, message: "Product with this name already exists!" });
         }
 
-
+        // Uploading images to Cloudinary and retrieving URLs
         let imageUrl = await Promise.all(
             images.map(async (item) => {
-                let result = await cloudinary.uploader.upload(item.path,{resource_type:'image'});
-                return result.secure_url
+                let result = await cloudinary.uploader.upload(item.path, { resource_type: 'image' });
+                return result.secure_url;
             })
-        )
+        );
 
-
-        // Saving Data in mongodb
-        const productData ={
-            name,description,category,
-            // in form-data price will be in text format have to change in number
-            price: Number(price),subCategory,
-            // in form data bestseller will be in  text shoild be in boolean type
-            bestseller: bestseller === "true" ? true :  false,
-            sizes: JSON.parse(sizes),
+        // Creating product data
+        const productData = {
+            name,
+            description,
+            category,
+            price: Number(price), // Convert price to number
+            productStock: Number(productStock), // Convert productStock to number
+            subCategory,
+            bestseller: bestseller === "true", // Convert bestseller to boolean
+            sizes: JSON.parse(sizes), // Convert sizes to array
             image: imageUrl,
-            date: Date.now()
-        }
+            date: Date.now(),
+        };
 
-        // console.log(productData);
-        
-        const product = new productModel(productData)
-        await product.save() // saving in mongoDB
+        // Save product to MongoDB
+        const product = new productModel(productData);
+        await product.save();
 
-
-
-        // console.log(name,description,price,category,subCategory,sizes,bestseller);
-        // console.log(images);
-        // console.log(imageUrl);
-        
-        res.json({success:true,message:"New Product added!"})
-        
+        res.json({ success: true, message: "New product added!" });
 
     } catch (error) {
         console.log(error);
-        res.json({success:false,message:error.message})  
+        res.status(500).json({ success: false, message: error.message });
     }
-}
+};
+
 
 // List all Product function
 const listProducts = async (req,res) => {
@@ -118,7 +109,7 @@ const singleProductInfo = async (req,res) => {
 // Update Product function
 const updateProduct = async (req, res) => {
     try {
-        const { productId, name, price } = req.body;
+        const { productId, name, price, productStock } = req.body;
 
         if (!productId) {
             return res.status(400).json({ success: false, message: "Product ID is required!" });
@@ -126,7 +117,7 @@ const updateProduct = async (req, res) => {
 
         const updatedProduct = await productModel.findByIdAndUpdate(
             productId,
-            { name, price: Number(price) },
+            { name, price: Number(price), productStock: Number(productStock) },
             { new: true }
         );
 

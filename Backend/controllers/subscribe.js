@@ -3,18 +3,23 @@ import subscribeModel from '../models/subscribe.js';
 
 const subscribe = async (req, res) => {
     try {
+        // Extract email from request body instead of req.user
         const { email } = req.body;
 
-        // Validate Email Format First
+        if (!email) {
+            return res.status(400).json({ success: false, message: "Email is required." });
+        }
+
+        // Validate Email Format
         if (!validator.isEmail(email)) {
-            return res.status(400).json({ success: false, message: "Enter a valid email i.e. abc@gmail.com" });
+            return res.status(400).json({ success: false, message: "Invalid email format." });
         }
 
         // Check if Email Already Exists
         const existSubscribe = await subscribeModel.findOne({ email });
 
         if (existSubscribe) {
-            return res.status(400).json({ success: false, message: "User already subscribed with this email" });
+            return res.status(409).json({ success: false, message: "User already subscribed with this email." });
         }
 
         // Save New Subscriber

@@ -1,6 +1,7 @@
 import dotenv from 'dotenv'
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
+import productModel from '../models/productModel.js'
 import Stripe from 'stripe'
 import sendEmail from "../utils/sendEmail.js";
 import path from 'path'
@@ -20,12 +21,22 @@ const deliveryCharge = 10
 // gateway initialization
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
 
-// placing order using COD
-
+// Cod method
 const placeOrder = async (req, res) => {
   try {
     const { userId, items, address, amount } = req.body;
     const { firstname, lastname, email, street, city, state, zipcode, country } = address;
+
+    if (!userId || !items || items.length === 0 || !address || !amount) {
+      return res.status(400).json({ success: false, message: "Invalid order data" });
+    }
+
+      // **Check for missing itemId BEFORE database operations**
+    for (const item of items) {
+      if (!item.itemId || typeof item.itemId !== "string") {
+        return res.status(400).json({ success: false, message: `Invalid item ID for product: ${item.name}` });
+      }
+    }
 
     const orderData = {
       userId,
@@ -41,175 +52,95 @@ const placeOrder = async (req, res) => {
     await newOrder.save();
     await userModel.findByIdAndUpdate(userId, { cartData: {} });
 
-    res.json({ success: true, message: "Order Placed !!" });
+    // **Update stock in parallel using Promise.all**
+   await Promise.all(
+      items.map(async (item) => {
+        const updatedProduct = await productModel.findByIdAndUpdate(
+          item.itemId,
+          { $inc: { productStock: -item.quantity } }, // Atomically decrement stock
+          { new: true }
+        );
+
+        if (!updatedProduct) {
+          throw new Error(`Product not found: ${item.itemId}`);
+        }
+
+        if (updatedProduct.productStock < 0) {
+          throw new Error(`Insufficient stock for product: ${updatedProduct.name}`);
+        }
+      })
+    );
+
+    res.json({ success: true, message: "Order Placed Successfully!" });
 
     const pdfFilePath = path.join(__dirname, "../pdfs", `order_${newOrder._id}.pdf`);
 
     const htmlContent = `
-    <html>
-  <head>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        margin: 0;
-        padding: 0;
-      }
-      .container {
-        width: 80%;
-        max-width: 600px;
-        margin: 20px auto;
-        background-color: #ffffff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-      }
-      .header {
-        text-align: center;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #007bff;
-      }
-      .header h2 {
-        color: #007bff;
-        margin: 0;
-      }
-      .content {
-        padding: 20px 0;
-      }
-      .content p {
-        font-size: 16px;
-        color: #333;
-        line-height: 1.5;
-      }
-      .order-details {
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 5px;
-        margin-top: 10px;
-      }
-      .order-details h3 {
-        color: #007bff;
-        margin-bottom: 10px;
-      }
-      .order-details p {
-        font-size: 14px;
-        margin: 5px 0;
-      }
-      .shipping-address {
-        background-color: #eef7ff;
-        padding: 10px;
-        border-radius: 5px;
-        margin-top: 10px;
-      }
-      .items-list {
-        margin-top: 10px;
-        padding: 10px;
-        background-color: #f9f9f9;
-        border-radius: 5px;
-      }
-      .items-list ul {
-        padding: 0;
-        list-style: none;
-      }
-      .items-list li {
-        background: #fff;
-        padding: 10px;
-        margin-bottom: 5px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-      }
-      .footer {
-        text-align: center;
-        margin-top: 20px;
-        padding-top: 15px;
-        border-top: 1px solid #ddd;
-        font-size: 14px;
-        color: #666;
-      }
-      .footer a {
-        color: #007bff;
-        text-decoration: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <h2>Order Confirmation</h2>
-      </div>
-      <div class="content">
-        <p>Dear <strong>${firstname} ${lastname}</strong>,</p>
-        <p>Thank you for your order! Below are your order details:</p>
-
-        <div class="order-details">
-          <h3>Order Details</h3>
-          <p><strong>Order ID:</strong> ${newOrder._id}</p>
-          <p><strong>Payment Method:</strong> ${newOrder.paymentMethod}</p>
-          <p><strong>Amount Paid:</strong> <span style="color: #28a745;">$${newOrder.amount}</span></p>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+          .container { width: 80%; max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); }
+          .header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #007bff; }
+          .header h2 { color: #007bff; margin: 0; }
+          .content { padding: 20px 0; }
+          .content p { font-size: 16px; color: #333; line-height: 1.5; }
+          .order-details { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 10px; }
+          .order-details h3 { color: #007bff; margin-bottom: 10px; }
+          .order-details p { font-size: 14px; margin: 5px 0; }
+          .shipping-address { background-color: #eef7ff; padding: 10px; border-radius: 5px; margin-top: 10px; }
+          .items-list { margin-top: 10px; padding: 10px; background-color: #f9f9f9; border-radius: 5px; }
+          .items-list ul { padding: 0; list-style: none; }
+          .items-list li { background: #fff; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid #ddd; }
+          .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 14px; color: #666; }
+          .footer a { color: #007bff; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h2>Order Confirmation</h2></div>
+          <div class="content">
+            <p>Dear <strong>${firstname} ${lastname}</strong>,</p>
+            <p>Thank you for your order! Below are your order details:</p>
+            <div class="order-details">
+              <h3>Order Details</h3>
+              <p><strong>Order ID:</strong> ${newOrder._id}</p>
+              <p><strong>Payment Method:</strong> ${newOrder.paymentMethod}</p>
+              <p><strong>Amount Paid:</strong> <span style="color: #28a745;">$${newOrder.amount}</span></p>
+            </div>
+            <div class="shipping-address">
+              <h3>Shipping Address</h3>
+              <p>${street}, ${city}, ${state}, ${zipcode}, ${country}</p>
+            </div>
+            <div class="items-list">
+              <h3>Items Ordered:</h3>
+              <ul>
+                ${items.map(item => `<li><strong>${item.name}</strong> (x${item.quantity}) - <span style="color: #28a745;">$${item.price}</span></li>`).join("")}
+              </ul>
+            </div>
+            <p>We appreciate your business and hope to serve you again soon!</p>
+          </div>
+          <div class="footer">
+            <p>Need help? <a href="mailto:support@yourshop.com">Contact Support</a></p>
+            <p>&copy; ${new Date().getFullYear()} YourShop. All rights reserved.</p>
+          </div>
         </div>
-
-        <div class="shipping-address">
-          <h3>Shipping Address</h3>
-          <p>${street}, ${city}, ${state}, ${zipcode}, ${country}</p>
-        </div>
-
-        <div class="items-list">
-          <h3>Items Ordered:</h3>
-          <ul>
-            ${items.map(item => 
-              `<li><strong>${item.name}</strong> (x${item.quantity}) - <span style="color: #28a745;">$${item.price}</span></li>`
-            ).join("")}
-          </ul>
-        </div>
-
-        <p>We appreciate your business and hope to serve you again soon!</p>
-      </div>
-      
-      <div class="footer">
-        <p>Need help? <a href="mailto:support@yourshop.com">Contact Support</a></p>
-        <p>&copy; ${new Date().getFullYear()} YourShop. All rights reserved.</p>
-      </div>
-    </div>
-  </body>
-</html>
+      </body>
+      </html>
     `;
 
     await generatePDF(htmlContent, pdfFilePath);
 
-    let pdfExists = false;
-    for (let i = 0; i < 5; i++) {
-      try {
-        await fs.access(pdfFilePath);
-        pdfExists = true;
-        break;
-      } catch (error) {
-        console.log(`Retry ${i + 1}: PDF not found, waiting...`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      }
-    }
+    await sendEmail(email, "Payment Successful for Your Order", "Order Details", {
+      _id: newOrder._id,
+      firstname,
+      lastname,
+      paymentMethod: newOrder.paymentMethod,
+      amount: newOrder.amount,
+      address: { street, city, state, zipcode, country },
+      items: newOrder.items
+    }, pdfFilePath);
 
-    if (!pdfExists) {
-      console.error("Error: PDF file not found, cannot send email.");
-      return res.json({ success: false, message: "PDF generation failed" });
-    }
-
-    await sendEmail(
-      email,
-      "Payment Successful for Your Order",
-      "Order Details",
-      {
-        _id: newOrder._id,
-        firstname,
-        lastname,
-        paymentMethod: newOrder.paymentMethod,
-        amount: newOrder.amount,
-        address: { street, city, state, zipcode, country },
-        items: newOrder.items,
-      },
-      pdfFilePath
-    );
-
-    // Remove PDF after successful email sending
     try {
       await fs.unlink(pdfFilePath);
       console.log(`PDF deleted: ${pdfFilePath}`);
@@ -218,9 +149,12 @@ const placeOrder = async (req, res) => {
     }
   } catch (error) {
     console.error("Error in placeOrder:", error);
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+
 
 export default placeOrder;
 
@@ -295,6 +229,25 @@ const verifystripe = async (req, res) => {
     if (success === "true") {
       await orderModel.findByIdAndUpdate(orderId, { payment: true });
       await userModel.findByIdAndUpdate(userId, { cartData: {} });
+
+       // Update product stock
+       await Promise.all(
+        order.items.map(async (item) => {
+          const updatedProduct = await productModel.findByIdAndUpdate(
+            item.itemId,
+            { $inc: { productStock: -item.quantity } },
+            { new: true }
+          );
+
+          if (!updatedProduct) {
+            throw new Error(`Product not found: ${item.itemId}`);
+          }
+
+          if (updatedProduct.productStock < 0) {
+            throw new Error(`Insufficient stock for product: ${updatedProduct.name}`);
+          }
+        })
+      );
 
       // Generate PDF for order confirmation
       const pdfFilePath = path.join(__dirname, "../pdfs", `order_${order._id}.pdf`);
