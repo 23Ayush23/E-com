@@ -27,7 +27,8 @@ const Order = () => {
         });
       });
 
-      setorderData(allorderitem.reverse());
+      const filteredOrders = allorderitem.filter(item=> item.status !== "Delivered")
+      setorderData(filteredOrders.reverse());
     }
   };
 

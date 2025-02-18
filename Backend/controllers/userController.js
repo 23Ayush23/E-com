@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken';
 import userModel from "../models/userModel.js";
 import dotenv from 'dotenv'
 import SimpleNodemailer from '../config/simplenodemailer.js';
-import fs from "fs/promises";
 import { fileURLToPath } from "url";
 import path from 'path'
 

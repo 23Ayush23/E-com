@@ -1,5 +1,5 @@
 import express from 'express'
-import { placeOrder,placeOrderStripe,allOrders,updateStatus,userOrders, verifystripe} from '../controllers/orderConroller.js'
+import { placeOrder,placeOrderStripe,allOrders,updateStatus,userOrders, verifystripe, orderAddress} from '../controllers/orderConroller.js'
 import adminAuth from '../middleware/adminAuth.js'
 import authUser from '../middleware/auth.js'
 
@@ -18,5 +18,8 @@ orderRouter.post('/userorders',authUser,userOrders)
 
 // verify payments
 orderRouter.post('/verifyStripe',authUser,verifystripe)
+
+// fetching address from order
+orderRouter.get('/orderaddress',orderAddress)
 
 export default orderRouter

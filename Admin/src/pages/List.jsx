@@ -142,137 +142,87 @@ const List = ({ token }) => {
   return (
     <>
       <p className="mb-2 text-xl font-semibold">All Product List</p>
-      <div className="flex flex-col gap-2">
-        <div className="hidden md:grid grid-cols-7 items-center px-2 py-1 border bg-gray-100 text-sm text-gray-600">
-          <b>Image</b>
-          <b>Name</b>
-          <b>Category</b>
-          <b>Price</b>
-          <b>Stock</b>
-          <b className="text-center">Actions</b>
-        </div>
 
+      {/* ✅ Table Format for Medium & Large Screens */}
+      <div className="hidden md:grid grid-cols-7 items-center px-2 py-1 border bg-gray-100 text-sm text-gray-600">
+        <b>Image</b>
+        <b>Name</b>
+        <b>Category</b>
+        <b>Price</b>
+        <b>Stock</b>
+        <b className="text-center">Actions</b>
+      </div>
+
+      {/* ✅ Responsive List Format */}
+      <div className="flex flex-col gap-0">
         {list.map((item, index) => (
-          <div
-            className="grid grid-cols-7 items-center gap-4 py-2 px-4 border text-sm hover:bg-gray-50"
-            key={index}
-          >
-            <img
-              className="w-16 h-16 object-cover rounded-md mx-auto"
-              src={item.image[0]}
-              alt={item.name}
-            />
-            <p className="truncate text-gray-800 font-medium text-center md:text-left">
-              {item.name}
-            </p>
-            <p className="text-gray-600 text-center md:text-left">
-              {item.category}
-            </p>
-            <p className="font-semibold text-center md:text-left">
-              {currency}
-              {item.price}
-            </p>
-            <p className="text-center md:text-left font-medium">
-              {item.productStock}
-            </p>
+          <div key={index} className="border p-1 rounded-sm bg-white shadow-md border-b-0">
+            {/* ✅ Small Screen View (Stacked Layout) */}
+            <div className="block md:hidden">
+              <div className="flex items-center gap-4">
+                <img
+                  className="w-20 h-20 object-cover rounded-md border"
+                  src={item.image[0]}
+                  alt={item.name}
+                />
+                <div className="flex-1">
+                  <p className="text-lg font-semibold text-gray-800">{item.name}</p>
+                  <p className="text-sm text-gray-600">Category: {item.category}</p>
+                  <p className="font-semibold">
+                    {currency}{item.price} - <span className="text-gray-600">Stock: {item.productStock}</span>
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex flex-col md:flex-row justify-center gap-2">
-              <button
-                onClick={() => openEditModal(item)}
-                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => openDeleteModal(item._id)}
-                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-              >
-                Delete
-              </button>
+              <div className="flex justify-between mt-4">
+                <button
+                  onClick={() => openEditModal(item)}
+                  className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => openDeleteModal(item._id)}
+                  className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            {/* ✅ Medium & Large Screens Table View */}
+            <div className="hidden md:grid grid-cols-7 items-center gap-4 py-2 text-sm">
+              <img
+                className="w-16 h-16 object-cover rounded-md mx-auto"
+                src={item.image[0]}
+                alt={item.name}
+              />
+              <p className="truncate text-gray-800 font-medium text-center md:text-left">
+                {item.name}
+              </p>
+              <p className="text-gray-600 text-center md:text-left">{item.category}</p>
+              <p className="font-semibold text-center md:text-left">
+                {currency}{item.price}
+              </p>
+              <p className="text-center md:text-left font-medium">{item.productStock}</p>
+              <div className="flex flex-col md:flex-row justify-center gap-2">
+                <button
+                  onClick={() => openEditModal(item)}
+                  className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => openDeleteModal(item._id)}
+                  className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeDeleteModal}
-        style={customStyles}
-        contentLabel="Confirm Delete"
-      >
-        <h2 className="text-lg font-semibold">Confirm Deletion</h2>
-        <p>Are you sure you want to delete this product?</p>
-        <div className="mt-4 flex justify-end gap-4">
-          <button
-            onClick={closeDeleteModal}
-            className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={removeProduct}
-            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-          >
-            Delete
-          </button>
-        </div>
-      </Modal>
-
-      {/* Edit Product Modal */}
-      <Modal
-        isOpen={editModalIsOpen}
-        onRequestClose={closeEditModal}
-        style={customStyles}
-        contentLabel="Edit Product"
-      >
-        <h2 className="text-lg font-semibold">Edit Product</h2>
-        <div className="mt-4">
-          <label className="block mb-2">Product Name</label>
-          <input
-            type="text"
-            name="name"
-            value={editData.name}
-            onChange={handleEditChange}
-            className="w-full px-3 py-2 border rounded-md"
-          />
-
-          <label className="block mt-4 mb-2">Price</label>
-          <input
-            type="number"
-            name="price"
-            min="0"
-            value={editData.price}
-            onChange={handleEditChange}
-            className="w-full px-3 py-2 border rounded-md [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none appearance-none"
-          />
-
-          <label className="block mt-4 mb-2">Stock</label>
-          <input
-            type="number"
-            name="productStock"
-            min="0"
-            value={editData.productStock}
-            onChange={handleEditChange}
-            className="w-full px-3 py-2 border rounded-md [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none appearance-none"
-          />
-
-          <div className="flex flex-col md:flex-row justify-center gap-2 mt-4">
-            <button
-              onClick={closeEditModal}
-              className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={updateProduct}
-              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-      </Modal>
     </>
   );
 };

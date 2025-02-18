@@ -472,4 +472,21 @@ const updateStatus = async (req,res) => {
     
 }
 
-export {placeOrder,placeOrderStripe,allOrders,updateStatus,userOrders,verifystripe}
+
+// Fetching address from order
+
+const orderAddress = async (req,res) => {
+    
+  try {
+
+    const orders = await orderModel.find({},"address")
+    res.json({success:true,orders})
+
+  } catch (error) {
+    console.log(error);
+    res.json({success:false,message:error.message})
+    
+  }
+}
+
+export {placeOrder,placeOrderStripe,allOrders,updateStatus,userOrders,verifystripe,orderAddress}
