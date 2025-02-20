@@ -475,18 +475,34 @@ const updateStatus = async (req,res) => {
 
 // Fetching address from order
 
-const orderAddress = async (req,res) => {
-    
+const orderAddress = async (req, res) => {
   try {
+    if (!req.body.userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized: User ID not found" });
+    }
 
-    const orders = await orderModel.find({},"address")
-    res.json({success:true,orders})
+    const userId = req.body.userId;
+
+    // Fetch the most recent address for the logged-in user
+    const latestOrder = await orderModel
+      .findOne({ userId })
+      .sort({ updatedAt: -1 }) // Sort by latest update
+      .select("address -_id");
+
+    if (!latestOrder) {
+      return res.json({ success: true, message: "No address found", address: null });
+    }
+
+    res.json({ success: true, message: "Latest address", address: latestOrder.address });
 
   } catch (error) {
-    console.log(error);
-    res.json({success:false,message:error.message})
-    
+    console.log("Error:", error.message);
+    res.status(500).json({ success: false, message: error.message });
   }
-}
+};
+
+
+
+
 
 export {placeOrder,placeOrderStripe,allOrders,updateStatus,userOrders,verifystripe,orderAddress}

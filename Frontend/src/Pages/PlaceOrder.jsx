@@ -47,10 +47,37 @@ const PlaceOrder = () => {
   const onSubmithandler = async (event) => {
     event.preventDefault();
   
-    if (formData.phone.length !== 10) {
+    // Regular expression to allow only alphabets and spaces
+    const alphabetRegex = /^[A-Za-z\s]+$/;
+  
+    // Validate fields
+    if (!alphabetRegex.test(formData.firstname.trim())) {
+      toast.error("First name should contain only letters.");
+      return;
+    }
+    if (!alphabetRegex.test(formData.lastname.trim())) {
+      toast.error("Last name should contain only letters.");
+      return;
+    }
+    if (!alphabetRegex.test(formData.city.trim())) {
+      toast.error("City should contain only letters.");
+      return;
+    }
+    if (!alphabetRegex.test(formData.state.trim())) {
+      toast.error("State should contain only letters.");
+      return;
+    }
+    if (!alphabetRegex.test(formData.country.trim())) {
+      toast.error("Country should contain only letters.");
+      return;
+    }
+  
+    // Validate phone number (10-digit check)
+    if (formData.phone.length !== 10 || isNaN(formData.phone)) {
       toast.error("Please enter a valid 10-digit phone number.");
       return;
     }
+  
     // Checking if the user is trying to pay without any items in the cart
     if (Object.keys(cartItems).length === 0) {
       toast.error("Your cart is empty. Please add items to your cart before proceeding.");
@@ -62,17 +89,17 @@ const PlaceOrder = () => {
   
       // Loop through cartItems to construct orderItems
       for (const productId in cartItems) {
-        for (const size in cartItems[productId]) { //  `size` is now correctly defined
+        for (const size in cartItems[productId]) {
           if (cartItems[productId][size] > 0) {
             const itemInfo = structuredClone(
               products.find((product) => product._id === productId)
             );
   
             if (itemInfo) {
-              itemInfo.size = size; //  Now `size` is correctly referenced
-              itemInfo.quantity = cartItems[productId][size]; //  Use `productId`
-              itemInfo.itemId = itemInfo._id; //  Assign correct `itemId`
-              delete itemInfo._id; // Remove `_id` if needed
+              itemInfo.size = size;
+              itemInfo.quantity = cartItems[productId][size];
+              itemInfo.itemId = itemInfo._id;
+              delete itemInfo._id;
               orderItems.push(itemInfo);
             }
           }
@@ -127,6 +154,7 @@ const PlaceOrder = () => {
       }
     }
   };
+  
   
 
   return (

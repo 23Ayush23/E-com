@@ -26,8 +26,10 @@ const Navbar = () => {
   };
 
   const userInitials = userData?.name
-    ? userData.name.substring(0, 2).toUpperCase()
+    ? userData.name.substring(0,1).toUpperCase()
     : "";
+    // console.log(getCartCount());
+    
 
   return (
     <div className="flex items-center justify-between py-3 px-4 lg:px-8 font-medium border-b border-gray-300">
@@ -46,25 +48,41 @@ const Navbar = () => {
       <ul className="hidden sm:flex gap-6 text-sm text-gray-700">
         <NavLink
           to="/"
-          className="flex flex-col items-center gap-1 hover:text-gray-900"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 hover:text-gray-900 ${
+              isActive ? "text-gray-900 font-semibold  text-md shadow-lg" : ""
+            }`
+          }
         >
           <p>Home</p>
         </NavLink>
         <NavLink
           to="/collection"
-          className="flex flex-col items-center gap-1 hover:text-gray-900"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 hover:text-gray-900 ${
+              isActive ? "text-gray-900 font-semibold  text-md shadow-lg" : ""
+            }`
+          }
         >
           <p>Collection</p>
         </NavLink>
         <NavLink
           to="/about"
-          className="flex flex-col items-center gap-1 hover:text-gray-900"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 hover:text-gray-900 ${
+              isActive ? "text-gray-900 font-semibold  text-md shadow-lg" : ""
+            }`
+          }
         >
           <p>About</p>
         </NavLink>
         <NavLink
           to="/contact"
-          className="flex flex-col items-center gap-1 hover:text-gray-900"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 hover:text-gray-900 ${
+              isActive ? "text-gray-900 font-semibold  text-md shadow-lg" : ""
+            }`
+          }
         >
           <p>Contact</p>
         </NavLink>

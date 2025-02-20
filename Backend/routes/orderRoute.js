@@ -20,6 +20,6 @@ orderRouter.post('/userorders',authUser,userOrders)
 orderRouter.post('/verifyStripe',authUser,verifystripe)
 
 // fetching address from order
-orderRouter.get('/orderaddress',orderAddress)
+orderRouter.post('/orderaddress',authUser,orderAddress)
 
 export default orderRouter
