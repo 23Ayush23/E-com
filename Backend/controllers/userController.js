@@ -46,7 +46,9 @@ const sendPasswordLink = async (email) => {
         // console.log("resetToken from forgot:",resetToken);
         
 
-        const resetLink = `http://localhost:5174/reset-password?token=${resetToken}`;
+        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+        // console.log("ResetLink ::  ",resetLink);
+        
 
         // console.log("Password reset link:", resetLink);
 

@@ -29,8 +29,18 @@ const List = ({ token }) => {
   });
 
   const fetchList = async () => {
+    if (!token) {
+      toast.error("Unauthorized: No token provided.");
+      return;
+    }
+    console.log("Token: ",token);
+    
+  
     try {
-      const response = await axios.get(backendUrl + "/api/product/list");
+      const response = await axios.get(`${backendUrl}/api/product/list`, {
+        headers: {token} // ✅ Ensure token is sent
+      });
+  
       if (response.data.success) {
         setList(response.data.products.reverse() || []);
       } else {
@@ -38,15 +48,18 @@ const List = ({ token }) => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || "Unauthorized access.");
     }
   };
+  
 
+  // ✅ Open delete modal
   const openDeleteModal = (id) => {
     setSelectedProductId(id);
     setIsOpen(true);
   };
 
+  // ✅ Close delete modal
   const closeDeleteModal = () => {
     setIsOpen(false);
     setSelectedProductId(null);
@@ -54,13 +67,18 @@ const List = ({ token }) => {
 
   const removeProduct = async () => {
     if (!selectedProductId) return;
+    if (!token) {
+      toast.error("Unauthorized: Please log in first.");
+      return;
+    }
+  
     try {
       const response = await axios.post(
-        backendUrl + "/api/product/remove",
+        `${backendUrl}/api/product/remove`,
         { id: selectedProductId },
-        { headers: { token } }
+        { headers:{token} }// ✅ Ensure token is included
       );
-
+  
       if (response.data.success) {
         toast.success(response.data.message);
         fetchList();
@@ -69,11 +87,14 @@ const List = ({ token }) => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || "Unauthorized access.");
     }
+  
     closeDeleteModal();
   };
+  
 
+  // ✅ Open Edit Modal with Product Data
   const openEditModal = (product) => {
     setSelectedProductId(product._id);
     setEditData({
@@ -84,53 +105,57 @@ const List = ({ token }) => {
     setEditModalIsOpen(true);
   };
 
+  // ✅ Close Edit Modal
   const closeEditModal = () => {
     setEditModalIsOpen(false);
     setSelectedProductId(null);
   };
 
+  // ✅ Handle Edit Input Changes
   const handleEditChange = (e) => {
     const { name, value } = e.target;
 
-    // ✅ Prevent setting negative values
-    if (name === "price" || name === "productStock") {
-      if (value < 0) {
-        toast.error(`${name} cannot be negative.`);
-        return;
-      }
+    if ((name === "price" || name === "productStock") && value < 0) {
+      toast.error(`${name} cannot be negative.`);
+      return;
     }
 
-    setEditData({ ...editData, [name]: value });
+    setEditData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Fix Update Product Function
   const updateProduct = async () => {
-    // ✅ Validate price and stock before making API request
+    if (!selectedProductId) {
+      toast.error("No product selected.");
+      return;
+    }
+  
     if (editData.price < 0 || editData.productStock < 0) {
       toast.error("Price and stock cannot be negative.");
       return;
     }
-
+  
     try {
       const response = await axios.post(
-        backendUrl + "/api/product/update",
+        `${backendUrl}/api/product/update`,
         {
           productId: selectedProductId,
           name: editData.name,
-          price: editData.price,
-          productStock: editData.productStock,
+          price: Number(editData.price), // ✅ Ensure numerical values
+          productStock: Number(editData.productStock),
         },
-        { headers: { token } }
+        { headers: {token} }// ✅ Fix token header format
       );
-
+  
       if (response.data.success) {
         toast.success(response.data.message);
-        fetchList();
+        fetchList(); // ✅ Refresh the list
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
     }
     closeEditModal();
   };
@@ -143,7 +168,7 @@ const List = ({ token }) => {
     <>
       <p className="mb-2 text-xl font-semibold">All Product List</p>
 
-      {/* ✅ Table Format for Medium & Large Screens */}
+      {/* ✅ Table for Medium & Large Screens */}
       <div className="hidden md:grid grid-cols-7 items-center px-2 py-1 border bg-gray-100 text-sm text-gray-600">
         <b>Image</b>
         <b>Name</b>
@@ -153,11 +178,11 @@ const List = ({ token }) => {
         <b className="text-center">Actions</b>
       </div>
 
-      {/* ✅ Responsive List Format */}
+      {/* ✅ Responsive List */}
       <div className="flex flex-col gap-0">
         {list.map((item, index) => (
           <div key={index} className="border p-1 rounded-sm bg-white shadow-md border-b-0">
-            {/* ✅ Small Screen View (Stacked Layout) */}
+            {/* ✅ Small Screen View */}
             <div className="block md:hidden">
               <div className="flex items-center gap-4">
                 <img
@@ -190,7 +215,7 @@ const List = ({ token }) => {
               </div>
             </div>
 
-            {/* ✅ Medium & Large Screens Table View */}
+            {/* ✅ Medium & Large Screen Table View */}
             <div className="hidden md:grid grid-cols-7 items-center gap-4 py-2 text-sm">
               <img
                 className="w-16 h-16 object-cover rounded-md mx-auto"
@@ -223,6 +248,109 @@ const List = ({ token }) => {
           </div>
         ))}
       </div>
+
+          {/* ✅ Delete Confirmation Modal */}
+<Modal isOpen={modalIsOpen} onRequestClose={closeDeleteModal} style={customStyles}>
+  <h2 className="text-lg font-semibold">Confirm Delete</h2>
+  <p>Are you sure you want to delete this product?</p>
+  <div className="flex justify-end gap-2 mt-4">
+    <button onClick={closeDeleteModal} className="px-3 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+      Cancel
+    </button>
+    <button onClick={removeProduct} className="px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">
+      Delete
+    </button>
+  </div>
+</Modal>
+
+{/* ✅ Edit Product Modal */}
+<Modal isOpen={editModalIsOpen} onRequestClose={closeEditModal} style={customStyles}>
+  <h2 className="text-lg font-semibold">Edit Product</h2>
+  <div className="flex flex-col gap-2 mt-2">
+    <label className="font-medium">Name</label>
+    <input
+      type="text"
+      name="name"
+      value={editData.name}
+      onChange={handleEditChange}
+      className="border p-2 rounded-md"
+    />
+
+    <label className="font-medium">Price</label>
+    <input
+      type="number"
+      name="price"
+      value={editData.price}
+      onChange={handleEditChange}
+      className="border p-2 rounded-md"
+    />
+
+    <label className="font-medium">Stock</label>
+    <input
+      type="number"
+      name="productStock"
+      value={editData.productStock}
+      onChange={handleEditChange}
+      className="border p-2 rounded-md"
+    />
+  </div>
+
+  <div className="flex justify-end gap-2 mt-4">
+    <button onClick={closeEditModal} className="px-3 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+      Cancel
+    </button>
+    <button onClick={updateProduct} className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+      Save Changes
+    </button>
+  </div>
+</Modal>
+
+        {/* ✅ Edit Product Modal */}
+<Modal isOpen={editModalIsOpen} onRequestClose={closeEditModal} style={customStyles}>
+  <h2 className="text-lg font-semibold">Edit Product</h2>
+  <div className="flex flex-col gap-2 mt-2">
+    
+    {/* ✅ Name Input */}
+    <label className="font-medium">Name</label>
+    <input
+      type="text"
+      name="name"
+      value={editData.name}
+      onChange={handleEditChange} // ✅ Attach `handleEditChange`
+      className="border p-2 rounded-md"
+    />
+
+    {/* ✅ Price Input */}
+    <label className="font-medium">Price</label>
+    <input
+      type="number"
+      name="price"
+      value={editData.price}
+      onChange={handleEditChange} // ✅ Attach `handleEditChange`
+      className="border p-2 rounded-md"
+    />
+
+    {/* ✅ Stock Input */}
+    <label className="font-medium">Stock</label>
+    <input
+      type="number"
+      name="productStock"
+      value={editData.productStock}
+      onChange={handleEditChange} // ✅ Attach `handleEditChange`
+      className="border p-2 rounded-md"
+    />
+  </div>
+
+  <div className="flex justify-end gap-2 mt-4">
+    <button onClick={closeEditModal} className="px-3 py-1 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+      Cancel
+    </button>
+    <button onClick={updateProduct} className="px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+      Save Changes
+    </button>
+  </div>
+</Modal>
+  
     </>
   );
 };

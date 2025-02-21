@@ -8,7 +8,7 @@ const Profile = () => {
   const [error, setError] = useState(null);
   const { backendUrl, token, currency } = useContext(ShopContext);
   const [orderData, setOrderData] = useState([]);
-  const [latestAddress, setLatestAddress] = useState(null); // Store a single latest address
+  const [latestAddress, setLatestAddress] = useState(null);
 
   useEffect(() => {
     if (!token) {
@@ -22,17 +22,16 @@ const Profile = () => {
         if (response.data.success && response.data.address) {
           const addr = response.data.address;
           if (typeof addr === "object") {
-            const formattedAddress = (
-              `${(addr.street || "").trim()}, ` +
-              `${(addr.city || "").trim()}, ` +
-              `${(addr.state || "").trim()}, ` +
-              `Zipcode: ${(addr.zipcode || "").trim()}, ` +
-              `${(addr.country || "").trim()}, ` +
-              `Phone: ${(addr.phone || "").trim()}`
-            ).replace(/\s+/g, " ");
-            setLatestAddress(formattedAddress);
+            setLatestAddress({
+              street: addr.street || "N/A",
+              city: addr.city || "N/A",
+              state: addr.state || "N/A",
+              zipcode: addr.zipcode || "N/A",
+              country: addr.country || "N/A",
+              phone: addr.phone || "N/A",
+            });
           } else {
-            setLatestAddress(addr.trim()); // If it's a plain string address
+            setLatestAddress({ formatted: addr.trim() });
           }
         } else {
           console.error("Error fetching address:", response.data.message);
@@ -119,9 +118,20 @@ const Profile = () => {
             <span className="font-semibold">Email:</span> {user.email}
           </p>
           {latestAddress ? (
-            <p className="text-gray-700">
-              <span className="font-semibold">Address:</span> {latestAddress}
-            </p>
+            <div className="text-gray-700 p-4 border rounded-lg bg-gray-50">
+              <span className="font-semibold">Address:</span>
+              <br />
+              {latestAddress.formatted ? (
+                <p>{latestAddress.formatted}</p>
+              ) : (
+                <>
+                  <p>{latestAddress.street}</p>
+                  <p>{latestAddress.city}, {latestAddress.state} - {latestAddress.zipcode}</p>
+                  <p>{latestAddress.country}</p>
+                  <p className="text-sm text-gray-500">Phone: {latestAddress.phone}</p>
+                </>
+              )}
+            </div>
           ) : (
             <p className="text-gray-500">No address found</p>
           )}
@@ -129,9 +139,7 @@ const Profile = () => {
       </div>
 
       <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6 mt-10">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          User Order History
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">User Order History</h2>
         <div className="space-y-6">
           {orderData.map((item, index) => (
             <div
@@ -147,28 +155,17 @@ const Profile = () => {
                 <div>
                   <p className="text-lg font-medium">{item.name}</p>
                   <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-500">
-                    <p>
-                      {currency}
-                      {item.price}
-                    </p>
+                    <p>{currency}{item.price}</p>
                     <p>Qty: {item.quantity}</p>
                     <p>Size: {item.size}</p>
                   </div>
-                  <p className="text-sm text-gray-500">
-                    Date: {new Date(item.date).toDateString()}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Payment: {item.paymentMethod}
-                  </p>
+                  <p className="text-sm text-gray-500">Date: {new Date(item.date).toDateString()}</p>
+                  <p className="text-sm text-gray-500">Payment: {item.paymentMethod}</p>
                 </div>
               </div>
               <div className="flex items-center lg:w-1/3 justify-between lg:justify-end">
                 <span
-                  className={`w-3 h-3 rounded-full ${
-                    item.status === "Delivered"
-                      ? "bg-green-500"
-                      : "bg-yellow-400"
-                  }`}
+                  className={`w-3 h-3 rounded-full ${item.status === "Delivered" ? "bg-green-500" : "bg-yellow-400"}`}
                 ></span>
                 <p className="text-sm font-medium">{item.status}</p>
               </div>
