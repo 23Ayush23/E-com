@@ -1,5 +1,5 @@
 import express from "express"
-import { loginUser,registerUser,adminLogin, forgotPassword, resetPassword, getUserData } from "../controllers/userController.js"
+import { loginUser,registerUser,adminLogin, forgotPassword, resetPassword, getUserData, removeAccount } from "../controllers/userController.js"
 import subscribe from "../controllers/subscribe.js";
 import checkSubscription from "../controllers/checkSubscription.js";
 
@@ -13,5 +13,6 @@ userRouter.post('/reset-password',resetPassword)
 userRouter.post('/subscribe',subscribe)
 userRouter.post('/check-subscription',checkSubscription)
 userRouter.get('/getuserdata',getUserData)
+userRouter.post('/remove-account',removeAccount)
 
 export default userRouter

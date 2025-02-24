@@ -4,7 +4,7 @@ const SubscribeSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true, // Ensure email is unique
+        unique: true, 
         trim: true,
         lowercase: true,
         validate: {

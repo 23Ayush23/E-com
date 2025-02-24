@@ -13,7 +13,15 @@ const userSchema = new mongoose.Schema({
     cartData:{
         type:Object,default:{}
     },
-},{minimize: false})
+},
+{minimize: false,
+toJSON: { virtuals: true, transform: (doc, ret) => {
+    if (Object.keys(ret.cartData).length === 0) {
+        delete ret.cartData;  
+    }
+    return ret;
+}},
+toObject: { virtuals: true }})
 
 const userModel = mongoose.models.user || mongoose.model("user",userSchema)
 

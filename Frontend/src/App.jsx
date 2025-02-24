@@ -18,6 +18,8 @@ import Verify from './Pages/Verify.jsx';
 import ForgotPassword from './Pages/ForgotPassword.jsx';
 import ResetPassword from './Pages/ResetPassword.jsx';
 import Profile from './Pages/Profile.jsx';
+import DeliveryPolicy from './Pages/DeliveryPolicy.jsx'
+import PrivacyPolicy from './Pages/PrivacyPolicy.jsx'
 
 const App = () => {
   const location = useLocation(); // Get current route
@@ -50,6 +52,8 @@ const App = () => {
         <Route path="/verify" element={<Verify />} />
         <Route path="/product/:productId" element={<Product />} />
         <Route path='/profile' element={<Profile />} />
+        <Route path="/delivery-policy" element={<DeliveryPolicy />} />
+        <Route path="/privacy-policy"  element={<PrivacyPolicy />} />
       </Routes>
 
       {/* Conditionally render Footer */}

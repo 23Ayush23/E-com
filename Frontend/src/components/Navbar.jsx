@@ -26,10 +26,9 @@ const Navbar = () => {
   };
 
   const userInitials = userData?.name
-    ? userData.name.substring(0,1).toUpperCase()
+    ? userData.name.substring(0, 1).toUpperCase()
     : "";
-    // console.log(getCartCount());
-    
+  // console.log(getCartCount());
 
   return (
     <div className="flex items-center justify-between py-3 px-4 lg:px-8 font-medium border-b border-gray-300">
@@ -50,17 +49,20 @@ const Navbar = () => {
           to="/"
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 hover:text-gray-900 ${
-              isActive ? "text-gray-900 font-semibold  text-md shadow-lg" : ""
+              isActive
+                ? "text-gray-900 font-semibold text-md underline decoration-1 underline-offset-4"
+                : ""
             }`
           }
         >
           <p>Home</p>
         </NavLink>
+
         <NavLink
           to="/collection"
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 hover:text-gray-900 ${
-              isActive ? "text-gray-900 font-semibold  text-md shadow-lg" : ""
+              isActive ? "text-gray-900 font-semibold  text-md underline decoration-1 underline-offset-4" : ""
             }`
           }
         >
@@ -70,7 +72,7 @@ const Navbar = () => {
           to="/about"
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 hover:text-gray-900 ${
-              isActive ? "text-gray-900 font-semibold  text-md shadow-lg" : ""
+              isActive ? "text-gray-900 font-semibold  text-md underline decoration-1 underline-offset-4" : ""
             }`
           }
         >
@@ -80,7 +82,7 @@ const Navbar = () => {
           to="/contact"
           className={({ isActive }) =>
             `flex flex-col items-center gap-1 hover:text-gray-900 ${
-              isActive ? "text-gray-900 font-semibold  text-md shadow-lg" : ""
+              isActive ? "text-gray-900 font-semibold  text-md underline decoration-1 underline-offset-4" : ""
             }`
           }
         >

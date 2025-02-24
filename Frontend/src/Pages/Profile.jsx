@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { ShopContext } from "../context/ShopContext";
+import { Dialog } from "@headlessui/react"
 
 const Profile = () => {
   const [user, setUser] = useState(null);
@@ -9,6 +10,7 @@ const Profile = () => {
   const { backendUrl, token, currency } = useContext(ShopContext);
   const [orderData, setOrderData] = useState([]);
   const [latestAddress, setLatestAddress] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -103,40 +105,83 @@ const Profile = () => {
     fetchUserData();
   }, [backendUrl]);
 
+  const removeAccount = async () => {
+    try {
+      const response = await axios.post(
+        `${backendUrl}/api/user/remove-account`,
+        { userId: user._id },
+        { headers: { token } }
+      );
+      
+      if (response.data.success) {
+        localStorage.removeItem("token");
+        localStorage.setItem("isSubscribed","false")
+        window.location.href = "/login";
+      }
+    } catch (error) {
+      console.error("Error deleting account:", error);
+    }
+  };
+
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
     <div className="container mx-auto px-4 lg:px-16 py-10">
       <div className="max-w-3xl mx-auto bg-white shadow-lg rounded-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">User Profile</h2>
-        <div className="space-y-2">
-          <p className="text-gray-700">
-            <span className="font-semibold">Name:</span> {user.name}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-semibold">Email:</span> {user.email}
-          </p>
-          {latestAddress ? (
-            <div className="text-gray-700 p-4 border rounded-lg bg-gray-50">
-              <span className="font-semibold">Address:</span>
-              <br />
-              {latestAddress.formatted ? (
-                <p>{latestAddress.formatted}</p>
-              ) : (
-                <>
-                  <p>{latestAddress.street}</p>
-                  <p>{latestAddress.city}, {latestAddress.state} - {latestAddress.zipcode}</p>
-                  <p>{latestAddress.country}</p>
-                  <p className="text-sm text-gray-500">Phone: {latestAddress.phone}</p>
-                </>
-              )}
-            </div>
-          ) : (
-            <p className="text-gray-500">No address found</p>
-          )}
+  <h2 className="text-2xl font-bold text-gray-800 mb-4">User Profile</h2>
+  <div className="space-y-2">
+    <p className="text-gray-700">
+      <span className="font-semibold">Name:</span> {user.name}
+    </p>
+    <p className="text-gray-700">
+      <span className="font-semibold">Email:</span> {user.email}
+    </p>
+    
+    {latestAddress ? (
+      <div className="text-gray-700 p-4 border rounded-lg bg-gray-50">
+        <span className="font-semibold">Address:</span>
+        <br />
+        {latestAddress.formatted ? (
+          <p>{latestAddress.formatted}</p>
+        ) : (
+          <>
+            <p>{latestAddress.street}</p>
+            <p>{latestAddress.city}, {latestAddress.state} - {latestAddress.zipcode}</p>
+            <p>{latestAddress.country}</p>
+            <p className="text-sm text-gray-500">Phone: {latestAddress.phone}</p>
+          </>
+        )}
+      </div>
+    ) : (
+      <p className="text-gray-500">No address found</p>
+    )}
+    
+    <button
+      onClick={() => setIsModalOpen(true)}
+      className="mt-6 w-full sm:w-1/3 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+    >
+      Delete Account
+    </button>
+    
+    {/* Confirmation Modal */}
+    <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+      <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm text-center">
+        <h2 className="text-lg font-bold">Confirm Deletion</h2>
+        <p className="text-gray-600 mt-2">Are you sure you want to delete your account? This action cannot be undone.</p>
+        <div className="mt-4 flex justify-center space-x-4">
+          <button onClick={() => setIsModalOpen(false)} className="px-6 py-2 bg-gray-300 rounded-lg hover:bg-gray-400">
+            Cancel
+          </button>
+          <button onClick={removeAccount} className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+            Delete
+          </button>
         </div>
       </div>
+    </Dialog>
+  </div>
+</div>
+
 
       <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg p-6 mt-10">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">User Order History</h2>

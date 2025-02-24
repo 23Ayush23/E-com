@@ -20,8 +20,8 @@ const Footer = () => {
           <ul className="flex flex-col gap-1 text-gray-600">
            <Link to='/'><li>Home</li></Link> 
           <Link to='/about'><li>About Us</li></Link>  
-           <li>Delivery</li>
-            <li>Privacy Policy</li>
+          <Link to='/delivery-policy'> <li>Delivery</li></Link>
+           <Link to='/privacy-policy'> <li>Privacy Policy</li></Link>
           </ul>
         </div>
 
@@ -29,8 +29,8 @@ const Footer = () => {
         <div className="flex flex-col gap-5">
           <p className="text-xl font-medium">Get in touch</p>
           <ul className="flex flex-col gap-1 text-gray-600">
-            <li>+91 6354089***</li>
-            <li>ayu****@gmail.com</li>
+            <li>+91 6354089000</li>
+            <li>ayush@gmail.com</li>
           </ul>
         </div>
       </div>

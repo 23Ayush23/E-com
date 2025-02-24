@@ -109,7 +109,7 @@ const singleProductInfo = async (req,res) => {
 // Update Product function
 const updateProduct = async (req, res) => {
     try {
-        const { productId, name, price, productStock } = req.body;
+        const { productId, name, description, price, productStock } = req.body;
 
         if (!productId) {
             return res.status(400).json({ success: false, message: "Product ID is required!" });
@@ -117,7 +117,7 @@ const updateProduct = async (req, res) => {
 
         const updatedProduct = await productModel.findByIdAndUpdate(
             productId,
-            { name, price: Number(price), productStock: Number(productStock) },
+            { name, price: Number(price), productStock: Number(productStock), description },
             { new: true }
         );
 
