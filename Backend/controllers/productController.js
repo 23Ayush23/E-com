@@ -105,7 +105,6 @@ const singleProductInfo = async (req,res) => {
     }
 }
 
-// update product
 // Update Product function
 const updateProduct = async (req, res) => {
     try {

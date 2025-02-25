@@ -10,6 +10,8 @@ import fs from "fs/promises";
 import generatePDF from "../utils/generatePDF.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+import { io } from '../server.js'
+import NotificationModel from '../models/notificationModel.js';
 
 // import { currency } from "../../Admin/src/App.jsx";
 
@@ -31,7 +33,7 @@ const placeOrder = async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid order data" });
     }
 
-      // **Check for missing itemId BEFORE database operations**
+    // **Check for missing itemId BEFORE database operations**
     for (const item of items) {
       if (!item.itemId || typeof item.itemId !== "string") {
         return res.status(400).json({ success: false, message: `Invalid item ID for product: ${item.name}` });
@@ -53,7 +55,7 @@ const placeOrder = async (req, res) => {
     await userModel.findByIdAndUpdate(userId, { cartData: {} });
 
     // **Update stock in parallel using Promise.all**
-   await Promise.all(
+    await Promise.all(
       items.map(async (item) => {
         const updatedProduct = await productModel.findByIdAndUpdate(
           item.itemId,
@@ -71,11 +73,29 @@ const placeOrder = async (req, res) => {
       })
     );
 
+    // **Save notification to the database with `order` field**
+    const notificationData = {
+      order: newOrder._id, // Ensure order ID is included
+      message: `New Order received from ${firstname} ${lastname}`,
+      orderId: newOrder._id,
+      amount: newOrder.amount,
+      items: newOrder.items.map((item) => ({ name: item.name, quantity: item.quantity })),
+      address: `${street}, ${city}, ${state}, ${zipcode}, ${country}`,
+      timestamp: new Date().toISOString(),
+    };
+
+    const newNotification = new NotificationModel(notificationData);
+    await newNotification.save();
+
     res.json({ success: true, message: "Order Placed Successfully!" });
 
+    // 🔹 Emit notification to the admin panel using Socket.io
+    io.emit("newOrderNotification", notificationData);
+
+    // Generate order confirmation email with PDF invoice
     const pdfFilePath = path.join(__dirname, "../pdfs", `order_${newOrder._id}.pdf`);
 
-    const htmlContent = `
+    const htmlContent = ` 
       <html>
       <head>
         <style>
@@ -153,9 +173,6 @@ const placeOrder = async (req, res) => {
   }
 };
 
-
-
-
 export default placeOrder;
 
 // Stripe method
@@ -230,8 +247,8 @@ const verifystripe = async (req, res) => {
       await orderModel.findByIdAndUpdate(orderId, { payment: true });
       await userModel.findByIdAndUpdate(userId, { cartData: {} });
 
-       // Update product stock
-       await Promise.all(
+      // Update product stock
+      await Promise.all(
         order.items.map(async (item) => {
           const updatedProduct = await productModel.findByIdAndUpdate(
             item.itemId,
@@ -249,141 +266,28 @@ const verifystripe = async (req, res) => {
         })
       );
 
+      // **Save notification to the database with order field**
+      const notificationData = {
+        order: order._id, // Ensure order ID is included
+        message: `New Order for order from ${order.address.firstname} ${order.address.lastname}`,
+        orderId: order._id,
+        amount: order.amount,
+        items: order.items.map((item) => ({ name: item.name, quantity: item.quantity })),
+        address: `${order.address.street}, ${order.address.city}, ${order.address.state}, ${order.address.zipcode}, ${order.address.country}`,
+        timestamp: new Date().toISOString(),
+      };
+
+      const newNotification = new NotificationModel(notificationData);
+      await newNotification.save();
+
+      // Emit notification to the admin panel using Socket.io
+      io.emit("newOrderNotification", notificationData);
+
       // Generate PDF for order confirmation
       const pdfFilePath = path.join(__dirname, "../pdfs", `order_${order._id}.pdf`);
-
-      const htmlContent = `
-        <html>
-          <head>
-            <style>
-              body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                margin: 0;
-                padding: 0;
-              }
-              .container {
-                width: 80%;
-                max-width: 600px;
-                margin: 20px auto;
-                background-color: #ffffff;
-                padding: 20px;
-                border-radius: 8px;
-                box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-              }
-              .header {
-                text-align: center;
-                padding-bottom: 15px;
-                border-bottom: 2px solid #007bff;
-              }
-              .header h2 {
-                color: #007bff;
-                margin: 0;
-              }
-              .content p {
-                font-size: 16px;
-                color: #333;
-                line-height: 1.5;
-              }
-              .order-details {
-                background-color: #f9f9f9;
-                padding: 15px;
-                border-radius: 5px;
-                margin-top: 10px;
-              }
-              .shipping-address {
-                background-color: #eef7ff;
-                padding: 10px;
-                border-radius: 5px;
-                margin-top: 10px;
-              }
-              .product-details {
-                background-color: rgb(239, 228, 190);
-                padding: 10px;
-                border-radius: 5px;
-                margin-top: 10px;
-              }
-              .amount-paid {
-                font-size: 20px;
-                font-weight: bold;
-                color: #28a745;
-                text-align: right;
-                margin-top: 15px;
-              }
-              .footer {
-                text-align: center;
-                margin-top: 20px;
-                padding-top: 15px;
-                border-top: 1px solid #ddd;
-                font-size: 14px;
-                color: #666;
-              }
-              .footer a {
-                color: #007bff;
-                text-decoration: none;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h2>Order Confirmation</h2>
-              </div>
-              <div class="content">
-                <p>Dear <strong>${order.address.firstname} ${order.address.lastname}</strong>,</p>
-                <p>Thank you for your order! Below are your order details:</p>
-
-                <div class="order-details">
-                  <p><strong>Order ID:</strong> ${order._id}</p>
-                  <p><strong>Payment Method:</strong> ${order.paymentMethod}</p>
-                </div>
-
-                <div class="shipping-address">
-                  <h3>Shipping Address</h3>
-                  <p>${order.address.street}, ${order.address.city}, ${order.address.state}, ${order.address.zipcode}, ${order.address.country}</p>
-                </div>
-
-                <div class="product-details">
-                  <h3>Products Purchased</h3>
-                  <ul>
-                    ${order.items.map(item => `<li>${item.name} - ${item.quantity} x $${item.price}</li>`).join('')}
-                  </ul>
-                  <p class="amount-paid">Total Paid: $${order.amount}</p>
-                </div>
-
-                <p>We appreciate your business and hope to serve you again soon!</p>
-              </div>
-              
-              <div class="footer">
-                <p>Need help? <a href="mailto:support@yourshop.com">Contact Support</a></p>
-                <p>&copy; ${new Date().getFullYear()} YourShop. All rights reserved.</p>
-              </div>
-            </div>
-          </body>
-        </html>
-      `;
-
+      const htmlContent = `<html><body><h2>Order Confirmation</h2><p>Order ID: ${order._id}</p></body></html>`;
       await generatePDF(htmlContent, pdfFilePath);
 
-      // Wait for PDF generation
-      let pdfExists = false;
-      for (let i = 0; i < 5; i++) {
-        try {
-          await fs.access(pdfFilePath);
-          pdfExists = true;
-          break;
-        } catch (error) {
-          console.log(`Retry ${i + 1}: PDF not found, waiting...`);
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-        }
-      }
-
-      if (!pdfExists) {
-        console.error("Error: PDF file not found, cannot send email.");
-        return res.json({ success: false, message: "PDF generation failed" });
-      }
-
-      // Send email only after successful payment verification
       await sendEmail(
         order.address.email,
         "Payment Successful for Your Order",
@@ -400,7 +304,6 @@ const verifystripe = async (req, res) => {
         pdfFilePath
       );
 
-      // Remove PDF after sending email
       try {
         await fs.unlink(pdfFilePath);
         console.log(`PDF deleted: ${pdfFilePath}`);
@@ -408,7 +311,7 @@ const verifystripe = async (req, res) => {
         console.error("Error deleting PDF:", unlinkError);
       }
 
-      res.json({ success: true, message: "Payment verified and email sent!" });
+      res.json({ success: true, message: "Payment verified, notification sent, and email sent!" });
     } else {
       await orderModel.findByIdAndDelete(orderId);
       res.json({ success: false, message: "Payment failed. Order deleted." });
@@ -418,6 +321,7 @@ const verifystripe = async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 };
+
 
 
 

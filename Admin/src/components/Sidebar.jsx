@@ -7,6 +7,14 @@ const Sidebar = () => {
     <div className="w-[70%] sm:w-[50%] md:w-[18%] min-h-screen border-r bg-gray-50 flex flex-col items-center md:items-start p-4 transition-all duration-300">
       <div className="flex flex-col gap-4 w-full">
         
+      <NavLink 
+          className="flex items-center gap-3 border border-gray-300 px-4 py-3 rounded-lg hover:bg-gray-100 transition duration-200 w-full"
+          to="/"
+        >
+          <img className="w-6 h-6" src={assets.home_icon} alt="Home" />
+          <p className="text-xs sm:text-sm md:text-base lg:text-lg">Home</p>
+        </NavLink>
+
         <NavLink 
           className="flex items-center gap-3 border border-gray-300 px-4 py-3 rounded-lg hover:bg-gray-100 transition duration-200 w-full"
           to="/add"

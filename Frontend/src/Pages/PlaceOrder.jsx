@@ -5,6 +5,7 @@ import { assets } from "../assets/assets";
 import { ShopContext } from "../context/ShopContext";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { io } from "socket.io-client";
 
 const PlaceOrder = () => {
   // State for selecting button of payment method
@@ -19,7 +20,9 @@ const PlaceOrder = () => {
     delivery_fee,
     products,
   } = useContext(ShopContext);
-
+  
+  // Socket for notification
+  const socket = io("http://localhost:2500");
   // State variable for form data that will update with inputs
   const [formData, setFormdata] = useState({
     firstname: "",
@@ -110,6 +113,7 @@ const PlaceOrder = () => {
         address: formData,
         items: orderItems,
         amount: getCartAmount() + delivery_fee,
+        timestamp: new Date().toISOString(),
       };
   
       switch (method) {
@@ -123,6 +127,13 @@ const PlaceOrder = () => {
           if (response.data.success) {
             setcartItems({});
             navigate("/order");
+
+            // Emit orderPlaced event to notify admin
+            socket.emit("orderPlaced", {
+              message: "A new order has been placed!",
+              order: orderData
+            });
+
           } else {
             toast.error(response.data?.error?.message || "Something went wrong");
           }
@@ -137,6 +148,13 @@ const PlaceOrder = () => {
   
           if (responseStripe.data.success) {
             window.location.replace(responseStripe.data.session_url);
+
+            // Emit orderPlaced event to notify admin
+            socket.emit("orderPlaced", {
+              message: "A new Stripe order has been placed!",
+              order: orderData
+          });
+          
           } else {
             toast.error(responseStripe.data?.error?.message || "Something went wrong");
           }
