@@ -2,6 +2,7 @@ import express from 'express'
 import { placeOrder,placeOrderStripe,allOrders,updateStatus,userOrders, verifystripe, orderAddress} from '../controllers/orderConroller.js'
 import adminAuth from '../middleware/adminAuth.js'
 import authUser from '../middleware/auth.js'
+import removeNotification from '../controllers/notificationController.js'
 
 const orderRouter = express.Router()
 
@@ -21,5 +22,6 @@ orderRouter.post('/verifyStripe',authUser,verifystripe)
 
 // fetching address from order
 orderRouter.post('/orderaddress',authUser,orderAddress)
+orderRouter.post('/remove-notification',removeNotification)
 
 export default orderRouter

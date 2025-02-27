@@ -31,90 +31,105 @@ const Navbar = () => {
   // console.log(getCartCount());
 
   return (
-    <div className="flex items-center justify-between py-3 px-4 lg:px-8 font-medium border-b border-gray-300">
+    <div className="flex items-center justify-between mb-10 py-3 px-4 lg:px-8 font-medium border-b border-gray-200 bg-blue-50">
       {/* Logo */}
       <Link to={"/"}>
         <div className="flex items-center">
           <img
-            src={assets.logo}
-            className="w-32 lg:w-40 h-auto object-contain"
-            alt="Logo"
-          />
+  src={assets.logo}
+  className="w-32 lg:w-40 h-auto object-contain bg-transparent mix-blend-multiply"
+  alt="Logo"
+/>
+
         </div>
       </Link>
 
       {/* Navigation Links */}
       <ul className="hidden sm:flex gap-6 text-sm text-gray-700">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `flex flex-col items-center gap-1 hover:text-gray-900 ${
-              isActive
-                ? "text-gray-900 font-semibold text-md underline decoration-1 underline-offset-4"
-                : ""
-            }`
-          }
-        >
-          <p>Home</p>
-        </NavLink>
+  <NavLink
+    to="/"
+    className={({ isActive }) =>
+      `flex flex-col items-center gap-1 hover:scale-110 transition-transform duration-300 hover:text-gray-900 ${
+        isActive
+          ? "text-gray-900 font-semibold text-md underline decoration-1 underline-offset-4"
+          : ""
+      }`
+    }
+  >
+    <p>Home</p>
+  </NavLink>
 
-        <NavLink
-          to="/collection"
-          className={({ isActive }) =>
-            `flex flex-col items-center gap-1 hover:text-gray-900 ${
-              isActive ? "text-gray-900 font-semibold  text-md underline decoration-1 underline-offset-4" : ""
-            }`
-          }
-        >
-          <p>Collection</p>
-        </NavLink>
-        <NavLink
-          to="/about"
-          className={({ isActive }) =>
-            `flex flex-col items-center gap-1 hover:text-gray-900 ${
-              isActive ? "text-gray-900 font-semibold  text-md underline decoration-1 underline-offset-4" : ""
-            }`
-          }
-        >
-          <p>About</p>
-        </NavLink>
-        <NavLink
-          to="/contact"
-          className={({ isActive }) =>
-            `flex flex-col items-center gap-1 hover:text-gray-900 ${
-              isActive ? "text-gray-900 font-semibold  text-md underline decoration-1 underline-offset-4" : ""
-            }`
-          }
-        >
-          <p>Contact</p>
-        </NavLink>
-      </ul>
+  <NavLink
+    to="/collection"
+    className={({ isActive }) =>
+      `flex flex-col items-center gap-1 hover:scale-110 transition-transform duration-300 hover:text-gray-900 ${
+        isActive
+          ? "text-gray-900 font-semibold text-md underline decoration-1 underline-offset-4"
+          : ""
+      }`
+    }
+  >
+    <p>Collection</p>
+  </NavLink>
+
+  <NavLink
+    to="/about"
+    className={({ isActive }) =>
+      `flex flex-col items-center gap-1 hover:scale-110 transition-transform duration-300 hover:text-gray-900 ${
+        isActive
+          ? "text-gray-900 font-semibold text-md underline decoration-1 underline-offset-4"
+          : ""
+      }`
+    }
+  >
+    <p>About</p>
+  </NavLink>
+
+  <NavLink
+    to="/contact"
+    className={({ isActive }) =>
+      `flex flex-col items-center gap-1 hover:scale-110 transition-transform duration-300 hover:text-gray-900 ${
+        isActive
+          ? "text-gray-900 font-semibold text-md underline decoration-1 underline-offset-4"
+          : ""
+      }`
+    }
+  >
+    <p>Contact</p>
+  </NavLink>
+</ul>
 
       {/* Icons and Controls */}
       <div className="flex items-center gap-4 sm:gap-6">
-        {/* Search Icon - Visible only on Collection Page */}
-        {location.pathname === "/collection" && (
-          <img
-            onClick={() => setShowSearch(true)}
-            src={assets.search_icon}
-            className="w-5 cursor-pointer transition-transform hover:scale-110"
-            alt="Search"
-          />
-        )}
+        {/* Search Icon - Toggle Search Bar */}
+{location.pathname === "/collection" && (
+  <img
+    onClick={() => setShowSearch((prev) => !prev)} // Toggle behavior
+    src={assets.search_icon}
+    className="w-5 cursor-pointer transition-transform hover:scale-110"
+    alt="Search"
+  />
+)}
+
 
         {/* Admin Button - Visible only if user exists */}
         {userInitials && (
           <button
-            onClick={handleAdminClick}
-            className="hidden sm:block px-3 py-1 rounded-lg bg-gray-400 text-white hover:bg-gray-900 transition-all text-sm"
-          >
+          onClick={handleAdminClick}
+          className="hidden sm:block group relative inline-flex items-center justify-start overflow-hidden rounded-full px-3 py-1 font-bold"
+        >
+          <span className="absolute left-0 top-0 h-32 w-32 -translate-y-2 translate-x-12 rotate-45 bg-black opacity-[3%]"></span>
+          <span className="absolute left-0 top-0 -mt-1 h-48 w-48 -translate-x-56 -translate-y-24 rotate-45 bg-black opacity-100 transition-all duration-500 ease-in-out group-hover:-translate-x-8"></span>
+          <span className="relative w-full text-left text-black transition-colors duration-200 ease-in-out group-hover:text-white">
             Admin
-          </button>
+          </span>
+          <span className="absolute inset-0 rounded-full border-1 border-black"></span>
+        </button>
         )}
 
         {/* Profile Icon with Dropdown */}
         <div className="group relative">
-          <div className="w-10 h-10 flex items-center justify-center bg-gray-300 rounded-full cursor-pointer shadow-sm transition-all hover:bg-gray-400">
+          <div className="w-10 h-10 flex items-center justify-center bg-blue-300 rounded-full cursor-pointer shadow-sm transition-all hover:bg-gray-900 text-gray-100 transition-transform hover:scale-110">
             {userInitials || (
               <img
                 src={assets.profile_icon}
@@ -162,7 +177,7 @@ const Navbar = () => {
         <Link to="/cart" className="relative flex items-center justify-center">
           <img
             src={assets.cart_icon}
-            className="w-6 h-6 min-w-6 transition-transform duration-200 hover:scale-110"
+            className="w-6 h-6 min-w-6 transition-transform hover:scale-110"
             alt="Cart"
           />
           {getCartCount() > 0 && (
