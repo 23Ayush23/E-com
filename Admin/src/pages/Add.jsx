@@ -4,6 +4,7 @@ import axios from 'axios';
 import { backendUrl } from '../App.jsx';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 const Add = ({ token }) => {
   // State for images, name, price, description, category, subcategory, sizes, bestseller, and stock
@@ -21,6 +22,8 @@ const Add = ({ token }) => {
   const [bestseller, setBestseller] = useState(false);
   const [sizes, setSizes] = useState([]);
   const [existedProduct, setExistedProduct] = useState([]);
+  const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -46,6 +49,7 @@ const Add = ({ token }) => {
       toast.error("Product with this name already exists.");
       return;
     }
+    setLoading(true)
 
     try {
       const formData = new FormData();
@@ -61,8 +65,10 @@ const Add = ({ token }) => {
       // Uploading at least one image
       if (!image1 && !image2 && !image3 && !image4) {
         toast.error("Please upload at least one image.");
+        setLoading(false);
         return;
       }
+
 
       image1 && formData.append("image1", image1);
       image2 && formData.append("image2", image2);
@@ -90,6 +96,8 @@ const Add = ({ token }) => {
       }
     } catch (error) {
       toast.error(`Error adding product: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -99,13 +107,29 @@ const Add = ({ token }) => {
       <div className="w-full mb-4">
         <p className="mb-2 text-gray-700 font-medium">Upload Image</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[setImage1, setImage2, setImage3, setImage4].map((setImage, index) => (
-            <label key={index} htmlFor={`image${index + 1}`} className="w-24 h-24 flex justify-center items-center bg-gray-100 border border-dashed border-gray-300 cursor-pointer rounded-md overflow-hidden">
-              <img className="w-12 h-12 object-cover" src={!image1 ? assets.upload_area : URL.createObjectURL(image1)} alt="Upload" />
-              <input onChange={(e) => setImage(e.target.files[0])} type="file" id={`image${index + 1}`} hidden />
-            </label>
-          ))}
-        </div>
+  {[setImage1, setImage2, setImage3, setImage4].map((setImage, index) => {
+    const images = [image1, image2, image3, image4]; // Keep track of states
+    return (
+      <label
+        key={index}
+        htmlFor={`image${index + 1}`}
+        className="w-24 h-24 flex justify-center items-center bg-gray-100 border border-dashed border-gray-300 cursor-pointer rounded-md overflow-hidden"
+      >
+        {images[index] ? (
+          <img
+            className="w-full h-full object-cover"
+            src={URL.createObjectURL(images[index])}
+            alt={`Upload ${index + 1}`}
+          />
+        ) : (
+          <img className="w-12 h-12 object-cover" src={assets.upload_area} alt="Upload" />
+        )}
+        <input onChange={(e) => setImage(e.target.files[0])} type="file" id={`image${index + 1}`} hidden />
+      </label>
+    );
+  })}
+</div>
+
       </div>
   
       <div className="w-full mb-4">
@@ -174,8 +198,10 @@ const Add = ({ token }) => {
 
       </div>
   
-      <button type="submit" className="w-full sm:w-32 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition">Add</button>
-    </form>
+      <button type="submit" className="w-full sm:w-32 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition flex justify-center items-center" disabled={loading}>
+        {loading && <AiOutlineLoading3Quarters className="animate-spin mr-2" />}
+        {loading ? "Adding..." : "Add"}
+      </button>    </form>
   );
   
 };

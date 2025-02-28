@@ -12,7 +12,7 @@ const ProductItem = ({id,name,image,price,productStock}) => {
     //Anyone select item will redirect to perticular id product page    
     <Link className='text-gray-800 cursor-pointer' to={`/product/${id}`}>
         <div className='overflow-hidden'>
-            <img className='hover:scale-110 transition ease-in-out' src={image[0]} alt="" />
+            <img className='w-full h-80 hover:scale-110 transition ease-in-out' src={image[0]} alt="" />
         </div>
         <p className='pt-3 pb-1 text-sm'>{name}</p>
         <p className='text-sm font-medium'>{currency}{price}</p>

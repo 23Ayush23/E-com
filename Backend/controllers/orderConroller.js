@@ -87,10 +87,21 @@ const placeOrder = async (req, res) => {
     const newNotification = new NotificationModel(notificationData);
     await newNotification.save();
 
-    res.json({ success: true, message: "Order Placed Successfully!" });
+
+
+    const notificationId = newNotification._id; // Ensure notification ID is included
+    console.log("Notification ID:", notificationId);
+
+    // **Include `notificationId` in response**
+    res.json({
+      success: true,
+      message: "Order Placed Successfully!",
+      orderId: newOrder._id,
+      notificationId, // Added notification ID in response
+    });
 
     // 🔹 Emit notification to the admin panel using Socket.io
-    io.emit("newOrderNotification", notificationData);
+    io.emit("newOrderNotification", { ...newNotification.toObject(), notificationId });
 
     // Generate order confirmation email with PDF invoice
     const pdfFilePath = path.join(__dirname, "../pdfs", `order_${newOrder._id}.pdf`);
@@ -173,6 +184,7 @@ const placeOrder = async (req, res) => {
   }
 };
 
+
 export default placeOrder;
 
 // Stripe method
@@ -240,14 +252,13 @@ const verifystripe = async (req, res) => {
     const order = await orderModel.findById(orderId);
 
     if (!order) {
-      return res.json({ success: false, message: "Order not found" });
+      return res.status(404).json({ success: false, message: "Order not found" });
     }
 
     if (success === "true") {
       await orderModel.findByIdAndUpdate(orderId, { payment: true });
       await userModel.findByIdAndUpdate(userId, { cartData: {} });
 
-      // Update product stock
       await Promise.all(
         order.items.map(async (item) => {
           const updatedProduct = await productModel.findByIdAndUpdate(
@@ -266,10 +277,9 @@ const verifystripe = async (req, res) => {
         })
       );
 
-      // **Save notification to the database with order field**
       const notificationData = {
-        order: order._id, // Ensure order ID is included
-        message: `New Order for order from ${order.address.firstname} ${order.address.lastname}`,
+        order: order._id,
+        message: `New Order received from ${order.address.firstname} ${order.address.lastname}`,
         orderId: order._id,
         amount: order.amount,
         items: order.items.map((item) => ({ name: item.name, quantity: item.quantity })),
@@ -280,12 +290,21 @@ const verifystripe = async (req, res) => {
       const newNotification = new NotificationModel(notificationData);
       await newNotification.save();
 
-      // Emit notification to the admin panel using Socket.io
-      io.emit("newOrderNotification", notificationData);
+      const notificationId = newNotification._id;
+      console.log("Notification ID:", notificationId);
 
-      // Generate PDF for order confirmation
+      io.emit("newOrderNotification", { ...newNotification.toObject(), notificationId });
+
       const pdfFilePath = path.join(__dirname, "../pdfs", `order_${order._id}.pdf`);
-      const htmlContent = `<html><body><h2>Order Confirmation</h2><p>Order ID: ${order._id}</p></body></html>`;
+      const htmlContent = `
+        <html>
+        <body>
+          <h2>Order Confirmation</h2>
+          <p>Order ID: ${order._id}</p>
+        </body>
+        </html>
+      `;
+      
       await generatePDF(htmlContent, pdfFilePath);
 
       await sendEmail(
@@ -314,13 +333,14 @@ const verifystripe = async (req, res) => {
       res.json({ success: true, message: "Payment verified, notification sent, and email sent!" });
     } else {
       await orderModel.findByIdAndDelete(orderId);
-      res.json({ success: false, message: "Payment failed. Order deleted." });
+      res.status(400).json({ success: false, message: "Payment failed. Order deleted." });
     }
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error("Error in verifystripe:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 
 

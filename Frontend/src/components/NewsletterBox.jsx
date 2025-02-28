@@ -79,6 +79,7 @@ const NewsletterBox = () => {
     };
 
     return (
+    <div className='bg-[#e9ecef] pt-10'>
         <div className='text-center'>
             <p className='text-2xl font-medium text-gray-800'>
                 Subscribe Now!! & get 20% Off
@@ -88,12 +89,12 @@ const NewsletterBox = () => {
             </p>
             <form 
                 onSubmit={onSubmitHandler} 
-                className='w-full sm:w-1/2 flex items-center mx-auto my-6 border'
+                className='w-full sm:w-1/2 flex items-center mx-auto  border'
             >
                 {isSubscribed ? (
                     <button 
                         type='button' 
-                        className='bg-black text-white text-lg w-full py-4 text-center cursor-not-allowed opacity-70'
+                        className='bg-black text-white text-lg w-full py-4 text-center cursor-not-allowed opacity-70 mb-10'
                         disabled
                     >
                         Thanks for Subscription!
@@ -119,6 +120,7 @@ const NewsletterBox = () => {
                 )}
             </form>
         </div>
+    </div>
     );
 };
 

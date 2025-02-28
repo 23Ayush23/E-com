@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import Hero from '../components/Hero.jsx';
 import LatestCollection from '../components/LatestCollection.jsx';
 import BestSeller from '../components/BestSeller.jsx';
@@ -8,12 +7,12 @@ import NewsletterBox from '../components/NewsletterBox.jsx';
 
 const Home = () => {
   return (
-    <div>
-      <Hero />
+    <div className='bg-[#f4f4f6]'>
       <LatestCollection />
+      <Hero />
       <BestSeller />
-      <OurPolicy />
       <NewsletterBox />
+      <OurPolicy />
     </div>
   );
 };
