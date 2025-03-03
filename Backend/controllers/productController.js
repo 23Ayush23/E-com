@@ -43,7 +43,7 @@ const addProduct = async (req, res) => {
             price: Number(price), // Convert price to number
             productStock: Number(productStock), // Convert productStock to number
             subCategory,
-            bestseller: bestseller === "true", // Convert bestseller to boolean
+            bestseller: bestseller === "true" || bestseller === true, // Convert bestseller to boolean
             sizes: JSON.parse(sizes), // Convert sizes to array
             image: imageUrl,
             date: Date.now(),

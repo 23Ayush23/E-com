@@ -10,7 +10,6 @@ import orderRouter from "./routes/orderRoute.js";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import NotificationModel from "./models/notificationModel.js";
-import { log } from "console";
 
 const app = express();
 const port = process.env.PORT || 2400;
@@ -19,14 +18,14 @@ dotenv.config();
 const server = createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173", // Change to your frontend's URL
+    origin: "*", // Change to your frontend's URL
     methods: ["GET", "POST"],
   },
 });
 
 // Socket.io Connection
 io.on("connection", async (socket) => {
-  // console.log("User connected:", socket.id);
+  console.log("User connected:", socket.id);  
 
   // Fetch existing notifications from MongoDB
   try {
@@ -51,7 +50,9 @@ io.on("connection", async (socket) => {
       await newNotification.save();
       // console.log("Saved Notification:",newNotification);
       
-      io.emit("newOrderNotification", newNotification);
+      io.emit("newOrderNotification", { ...newNotification.toObject(), notificationId });
+// console.log("Emitted newOrderNotification:", newNotification.toObject());
+
     } catch (error) {
       console.error("Error saving notification:", error);
     }
@@ -67,7 +68,7 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("disconnect", () => {
-    // console.log("User disconnected:", socket.id);
+    console.log("User disconnected:", socket.id);
   });
 });
 

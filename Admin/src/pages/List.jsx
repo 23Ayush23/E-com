@@ -34,7 +34,7 @@ const List = ({ token }) => {
       toast.error("Unauthorized: No token provided.");
       return;
     }
-    console.log("Token: ", token);
+    // console.log("Token: ", token);
 
     try {
       const response = await axios.get(`${backendUrl}/api/product/list`, {

@@ -56,7 +56,7 @@ const Cart = () => {
   return (
     <div className="border-t pt-14">
       <div className="text-4xl mb-3">
-        <Title text1={"Your "} text2={"Products CART"} />
+        <Title text1={"Your "} text2={" CART"} />
       </div>
       
       {/* ============ Displaying Cart Items ========== */}

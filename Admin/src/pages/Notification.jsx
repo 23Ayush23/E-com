@@ -9,9 +9,21 @@ const Notification = () => {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const storedNotifications = JSON.parse(localStorage.getItem("notifications")) || [];
-    setNotifications(storedNotifications);
-    localStorage.setItem("unreadNotifications", "0");
+    const fetchNotifications = async () => {
+      try {
+        const response = await axios.get("http://localhost:2500/api/order/get-notification");
+        if (response.data.success) {
+          setNotifications(response.data.notifications);
+          const unreadCount = response.data.notifications.length;
+        localStorage.setItem("unreadNotifications", unreadCount);
+        window.dispatchEvent(new CustomEvent("unreadCountUpdated", { detail: unreadCount }));
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
 
     socket.on("newOrderNotification", (newNotification) => {
       if (!newNotification._id) {
@@ -19,30 +31,18 @@ const Notification = () => {
         return;
       }
 
-      setNotifications((prev) => {
-        const updatedNotifications = [newNotification, ...prev].sort(
-          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-        );
-        localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
-
-        // Update unread count properly
-        let unreadCount = parseInt(localStorage.getItem("unreadNotifications") || "0", 10);
-        unreadCount += 1;
-        localStorage.setItem("unreadNotifications", unreadCount);
-
-        // Dispatch event to update Navbar
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent("unreadCountUpdated", { detail: unreadCount }));
-        }, 0); // Delay state update to prevent React warning
-
-        return updatedNotifications;
-      });
+      setNotifications((prev) => [newNotification, ...prev].sort(
+        (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+      ));
 
       toast.info(`${newNotification.message}`);
+      const updatedCount = notifications.length + 1;
+    localStorage.setItem("unreadNotifications", updatedCount);
+    window.dispatchEvent(new CustomEvent("unreadCountUpdated", { detail: updatedCount }));
+
     });
 
     return () => {
-      socket.off("loadNotifications");
       socket.off("newOrderNotification");
     };
   }, []);
@@ -54,23 +54,9 @@ const Notification = () => {
     }
 
     try {
-      const response = await axios.post(`http://localhost:2500/api/order/remove-notification`, { id });
+      const response = await axios.post("http://localhost:2500/api/order/remove-notification", { id });
       if (response.data.success) {
-        setNotifications((prev) => {
-          const updatedNotifications = prev.filter((notification) => notification._id !== id);
-          localStorage.setItem("notifications", JSON.stringify(updatedNotifications));
-
-          // Update unread count when a notification is removed
-          let unreadCount = Math.max(0, parseInt(localStorage.getItem("unreadNotifications") || "0", 10) - 1);
-          localStorage.setItem("unreadNotifications", unreadCount);
-
-          // Dispatch event to sync with Navbar
-          setTimeout(() => {
-            window.dispatchEvent(new CustomEvent("unreadCountUpdated", { detail: unreadCount }));
-          }, 0);
-
-          return updatedNotifications;
-        });
+        setNotifications((prev) => prev.filter((notification) => notification._id !== id));
       } else {
         console.error("Failed to remove notification:", response.data.message);
       }

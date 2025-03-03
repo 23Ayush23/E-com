@@ -130,7 +130,9 @@ const Navbar = () => {
 
         {/* Profile Icon with Dropdown */}
         <div className="group relative">
-          <div className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full cursor-pointer shadow-sm transition-all hover:bg-gray-900 text-gray-100 transition-transform hover:scale-110">
+        <div className={`w-10 h-10 flex items-center justify-center rounded-full cursor-pointer shadow-sm transition-all hover:scale-110 ${
+  userInitials ? "bg-gray-700 hover:bg-gray-900 text-gray-100" : "bg-gray-300"
+}`}>
             {userInitials || (
               <img
               src={assets.profile_icon}

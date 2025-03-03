@@ -10,6 +10,17 @@ const Navbar = ({ setToken }) => {
     // Get unread count from local storage on mount
     const storedCount = parseInt(localStorage.getItem("unreadNotifications") || "0", 10);
     setUnreadCount(storedCount);
+
+    const handleUnreadCountUpdate = (e) => {
+      setUnreadCount(e.detail);
+    };
+
+    // Listen for custom event updates
+    window.addEventListener("unreadCountUpdated", handleUnreadCountUpdate);
+
+    return () => {
+      window.removeEventListener("unreadCountUpdated", handleUnreadCountUpdate);
+    };
   }, []);
 
   useEffect(() => {
@@ -18,18 +29,10 @@ const Navbar = ({ setToken }) => {
       setUnreadCount(updatedCount);
     };
 
-    const handleUnreadCountUpdate = (e) => {
-      setTimeout(() => {
-        setUnreadCount(e.detail);
-      }, 0); // Delay state update to avoid React warning
-    };
-
     window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("unreadCountUpdated", handleUnreadCountUpdate);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("unreadCountUpdated", handleUnreadCountUpdate);
     };
   }, []);
 
@@ -53,7 +56,7 @@ const Navbar = ({ setToken }) => {
             alt="Notifications"
           />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
               {unreadCount}
             </span>
           )}

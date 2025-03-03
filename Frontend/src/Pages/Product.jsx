@@ -49,7 +49,7 @@ const Product = () => {
             ))}
           </div>
           <div className='w-full sm:w-80%'>
-            <img className='w-full h-[400px]' src={image} alt="" />
+            <img className='w-full h-[500px]' src={image} alt="" />
 
             {/* Out of Stock Message */}
             {productData.productStock === 0 && (

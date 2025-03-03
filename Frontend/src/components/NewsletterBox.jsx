@@ -82,7 +82,7 @@ const NewsletterBox = () => {
     <div className='bg-[#e9ecef] pt-10'>
         <div className='text-center'>
             <p className='text-2xl font-medium text-gray-800'>
-                Subscribe Now!! & get 20% Off
+                Subscribe now & get 20% Off !!
             </p>
             <p className='text-gray-400 mt-3'>
                 Connect with us and get more upcoming benefits

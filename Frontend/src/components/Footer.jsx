@@ -8,7 +8,7 @@ const Footer = () => {
         {/* Description */}
         <div>
           <h1 className="text-white font-bold text-3xl mb-3">
-            Black White Clothing Store
+            BLACK WHITE Clothing Store
           </h1>
           <p className="w-full md:w-2/3 text-gray-300">
             Elevate your shopping experience with our high-quality products and seamless service.
@@ -31,7 +31,7 @@ const Footer = () => {
           <p className="text-xl font-bold">Get in touch</p>
           <ul className="flex flex-col gap-2 text-gray-300">
             <li className="font-semibold">+91 6354089000</li>
-            <li className="font-semibold">ayush@gmail.com</li>
+            <li className="font-semibold">ayushdpatel2372003@gmail.com</li>
           </ul>
         </div>
       </div>

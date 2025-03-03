@@ -197,6 +197,19 @@ const Add = ({ token }) => {
 </div>
 
       </div>
+
+      {/* Bestseller Checkbox */}
+      <div className="w-full mb-4">
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={bestseller}
+            onChange={(e) => setBestseller(e.target.checked)}
+            className="form-checkbox text-blue-600"
+          />
+          <span className="font-medium">Mark as Bestseller</span>
+        </label>
+      </div>
   
       <button type="submit" className="w-full sm:w-32 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition flex justify-center items-center" disabled={loading}>
         {loading && <AiOutlineLoading3Quarters className="animate-spin mr-2" />}
