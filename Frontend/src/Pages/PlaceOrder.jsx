@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState,useEffect } from "react";
 import Title from "../components/Title";
 import CartTotal from "../components/CartTotal";
 import { assets } from "../assets/assets";
@@ -19,6 +19,8 @@ const PlaceOrder = () => {
     getCartAmount,
     delivery_fee,
     products,
+    userData,
+    getCartCount
   } = useContext(ShopContext);
   
   // Socket for notification
@@ -46,6 +48,11 @@ const PlaceOrder = () => {
 
     setFormdata((data) => ({ ...data, [name]: value }));
   };
+
+  useEffect(() => {
+    getCartCount();  // Ensure cart count updates when `userData` changes
+  }, [userData]);
+  
 
   const onSubmithandler = async (event) => {
     event.preventDefault();
@@ -147,6 +154,7 @@ const PlaceOrder = () => {
           );
   
           if (responseStripe.data.success) {
+            setcartItems({})
             window.location.replace(responseStripe.data.session_url);
 
             // Emit orderPlaced event to notify admin

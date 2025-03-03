@@ -115,11 +115,19 @@ const ShopContextProvider = (props) => {
   };
 
   const getCartCount = () => {
+    if (!cartItems || Object.keys(cartItems).length === 0) return 0; // Ensure cart is empty after payment
     return Object.values(cartItems).reduce(
       (total, item) => total + Object.values(item).reduce((sum, qty) => sum + qty, 0),
       0
     );
   };
+  
+
+  // clear cart
+
+  const clearCart = () => {
+    setcartItems({})
+  }
 
   const getCartAmount = () => {
     return Object.entries(cartItems).reduce((totalAmount, [itemId, sizes]) => {
@@ -181,6 +189,7 @@ const ShopContextProvider = (props) => {
     getUserData,
     userData,
     logoutUser,
+    clearCart
   };
 
   return <ShopContext.Provider value={value}>{props.children}</ShopContext.Provider>;

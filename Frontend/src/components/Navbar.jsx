@@ -1,10 +1,11 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { assets } from "../assets/assets.js";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext.jsx";
 
 const Navbar = () => {
   const [visible, setVisible] = useState(false);
+  
   const {
     setShowSearch,
     getCartCount,
@@ -13,6 +14,12 @@ const Navbar = () => {
     adminUrl,
     logoutUser,
   } = useContext(ShopContext);
+
+  useEffect(() => {
+    // Fetch cart count again after successful payment
+    getCartCount();
+  }, [userData]); // Ensure `userData` updates correctly in the context
+  
 
   const location = useLocation(); // Get current route
 
