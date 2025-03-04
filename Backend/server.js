@@ -74,7 +74,7 @@ io.on("connection", async (socket) => {
 
 // Start the WebSocket Server
 server.listen(2500, () => {
-  console.log("Socket.io server running on port 2500");
+  console.log("Socket.io server running on port 2400");
 });
 
 // App Config

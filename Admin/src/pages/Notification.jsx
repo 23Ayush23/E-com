@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import axios from 'axios';
 
-const socket = io("http://localhost:2500");
+const socket = io(import.meta.env.VITE_NOTIFICATION_URL);
 
 const Notification = () => {
   const [notifications, setNotifications] = useState([]);
@@ -11,7 +11,7 @@ const Notification = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const response = await axios.get("http://localhost:2500/api/order/get-notification");
+        const response = await axios.get(`${import.meta.env.VITE_NOTIFICATION_URL}/api/order/get-notification`);
         if (response.data.success) {
           setNotifications(response.data.notifications);
           const unreadCount = response.data.notifications.length;
@@ -54,7 +54,7 @@ const Notification = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:2500/api/order/remove-notification", { id });
+      const response = await axios.post(`${import.meta.env.VITE_NOTIFICATION_URL}/api/order/remove-notification`, { id });
       if (response.data.success) {
         setNotifications((prev) => prev.filter((notification) => notification._id !== id));
       } else {

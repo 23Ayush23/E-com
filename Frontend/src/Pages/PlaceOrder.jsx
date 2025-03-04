@@ -24,7 +24,7 @@ const PlaceOrder = () => {
   } = useContext(ShopContext);
   
   // Socket for notification
-  const socket = io("http://localhost:2500");
+  const socket = io(import.meta.env.VITE_NOTIFICATION_URL);
   // State variable for form data that will update with inputs
   const [formData, setFormdata] = useState({
     firstname: "",
