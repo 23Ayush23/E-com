@@ -27,7 +27,7 @@ const Notification = () => {
 
     socket.on("newOrderNotification", (newNotification) => {
       if (!newNotification._id) {
-        console.error("Received notification without _id:", newNotification);
+        // console.error("Received notification without _id:", newNotification
         return;
       }
 
