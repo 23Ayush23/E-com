@@ -1,42 +1,53 @@
-import dotenv from 'dotenv'
+import dotenv from "dotenv";
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
-import productModel from '../models/productModel.js'
-import Stripe from 'stripe'
+import productModel from "../models/productModel.js";
+import Stripe from "stripe";
 import sendEmail from "../utils/sendEmail.js";
-import path from 'path'
-import { fileURLToPath } from "url";  
+import path from "path";
+import { fileURLToPath } from "url";
 import fs from "fs/promises";
 import generatePDF from "../utils/generatePDF.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-import { io } from '../server.js'
-import NotificationModel from '../models/notificationModel.js';
+import { io } from "../server.js";
+import NotificationModel from "../models/notificationModel.js";
 
-// import { currency } from "../../Admin/src/App.jsx";
+dotenv.config();
 
-dotenv.config()
-
-const currency = 'usd'
-const deliveryCharge = 10
+const deliveryCharge = 10;
 
 // gateway initialization
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // Cod method
 const placeOrder = async (req, res) => {
   try {
     const { userId, items, address, amount } = req.body;
-    const { firstname, lastname, email, street, city, state, zipcode, country } = address;
+    const {
+      firstname,
+      lastname,
+      email,
+      street,
+      city,
+      state,
+      zipcode,
+      country,
+    } = address;
 
     if (!userId || !items || items.length === 0 || !address || !amount) {
-      return res.status(400).json({ success: false, message: "Invalid order data" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order data" });
     }
 
     // **Check for missing itemId BEFORE database operations**
     for (const item of items) {
       if (!item.itemId || typeof item.itemId !== "string") {
-        return res.status(400).json({ success: false, message: `Invalid item ID for product: ${item.name}` });
+        return res.status(400).json({
+          success: false,
+          message: `Invalid item ID for product: ${item.name}`,
+        });
       }
     }
 
@@ -68,7 +79,9 @@ const placeOrder = async (req, res) => {
         }
 
         if (updatedProduct.productStock < 0) {
-          throw new Error(`Insufficient stock for product: ${updatedProduct.name}`);
+          throw new Error(
+            `Insufficient stock for product: ${updatedProduct.name}`
+          );
         }
       })
     );
@@ -79,7 +92,10 @@ const placeOrder = async (req, res) => {
       message: `New Order received from ${firstname} ${lastname}`,
       orderId: newOrder._id,
       amount: newOrder.amount,
-      items: newOrder.items.map((item) => ({ name: item.name, quantity: item.quantity })),
+      items: newOrder.items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+      })),
       address: `${street}, ${city}, ${state}, ${zipcode}, ${country}`,
       timestamp: new Date().toISOString(),
     };
@@ -87,10 +103,7 @@ const placeOrder = async (req, res) => {
     const newNotification = new NotificationModel(notificationData);
     await newNotification.save();
 
-
-
     const notificationId = newNotification._id; // Ensure notification ID is included
-    console.log("Notification ID:", notificationId);
 
     // **Include `notificationId` in response**
     res.json({
@@ -100,11 +113,18 @@ const placeOrder = async (req, res) => {
       notificationId, // Added notification ID in response
     });
 
-    // 🔹 Emit notification to the admin panel using Socket.io
-    io.emit("newOrderNotification", { ...newNotification.toObject(), notificationId });
+    //Emit notification to the admin panel using Socket.io
+    io.emit("newOrderNotification", {
+      ...newNotification.toObject(),
+      notificationId,
+    });
 
     // Generate order confirmation email with PDF invoice
-    const pdfFilePath = path.join(__dirname, "../pdfs", `order_${newOrder._id}.pdf`);
+    const pdfFilePath = path.join(
+      __dirname,
+      "../pdfs",
+      `order_${newOrder._id}.pdf`
+    );
 
     const htmlContent = ` 
       <html>
@@ -137,7 +157,9 @@ const placeOrder = async (req, res) => {
               <h3>Order Details</h3>
               <p><strong>Order ID:</strong> ${newOrder._id}</p>
               <p><strong>Payment Method:</strong> ${newOrder.paymentMethod}</p>
-              <p><strong>Amount Paid:</strong> <span style="color: #28a745;">$${newOrder.amount}</span></p>
+              <p><strong>Amount Paid:</strong> <span style="color: #28a745;">$${
+                newOrder.amount
+              }</span></p>
             </div>
             <div class="shipping-address">
               <h3>Shipping Address</h3>
@@ -146,7 +168,12 @@ const placeOrder = async (req, res) => {
             <div class="items-list">
               <h3>Items Ordered:</h3>
               <ul>
-                ${items.map(item => `<li><strong>${item.name}</strong> (x${item.quantity}) - <span style="color: #28a745;">$${item.price}</span></li>`).join("")}
+                ${items
+                  .map(
+                    (item) =>
+                      `<li><strong>${item.name}</strong> (x${item.quantity}) - <span style="color: #28a745;">$${item.price}</span></li>`
+                  )
+                  .join("")}
               </ul>
             </div>
             <p>We appreciate your business and hope to serve you again soon!</p>
@@ -162,19 +189,24 @@ const placeOrder = async (req, res) => {
 
     await generatePDF(htmlContent, pdfFilePath);
 
-    await sendEmail(email, "Payment Successful for Your Order", "Order Details", {
-      _id: newOrder._id,
-      firstname,
-      lastname,
-      paymentMethod: newOrder.paymentMethod,
-      amount: newOrder.amount,
-      address: { street, city, state, zipcode, country },
-      items: newOrder.items
-    }, pdfFilePath);
+    await sendEmail(
+      email,
+      "Payment Successful for Your Order",
+      "Order Details",
+      {
+        _id: newOrder._id,
+        firstname,
+        lastname,
+        paymentMethod: newOrder.paymentMethod,
+        amount: newOrder.amount,
+        address: { street, city, state, zipcode, country },
+        items: newOrder.items,
+      },
+      pdfFilePath
+    );
 
     try {
       await fs.unlink(pdfFilePath);
-      console.log(`PDF deleted: ${pdfFilePath}`);
     } catch (unlinkError) {
       console.error("Error deleting PDF:", unlinkError);
     }
@@ -184,7 +216,6 @@ const placeOrder = async (req, res) => {
   }
 };
 
-
 export default placeOrder;
 
 // Stripe method
@@ -192,7 +223,6 @@ export default placeOrder;
 const placeOrderStripe = async (req, res) => {
   try {
     const { userId, items, address, amount } = req.body;
-    const { firstname, lastname } = address;
     const { origin } = req.headers;
 
     const orderData = {
@@ -242,7 +272,6 @@ const placeOrderStripe = async (req, res) => {
   }
 };
 
-
 // verify stripe payment method
 
 const verifystripe = async (req, res) => {
@@ -252,7 +281,9 @@ const verifystripe = async (req, res) => {
     const order = await orderModel.findById(orderId);
 
     if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
     }
 
     if (success === "true") {
@@ -272,7 +303,9 @@ const verifystripe = async (req, res) => {
           }
 
           if (updatedProduct.productStock < 0) {
-            throw new Error(`Insufficient stock for product: ${updatedProduct.name}`);
+            throw new Error(
+              `Insufficient stock for product: ${updatedProduct.name}`
+            );
           }
         })
       );
@@ -282,7 +315,10 @@ const verifystripe = async (req, res) => {
         message: `New Order received from ${order.address.firstname} ${order.address.lastname}`,
         orderId: order._id,
         amount: order.amount,
-        items: order.items.map((item) => ({ name: item.name, quantity: item.quantity })),
+        items: order.items.map((item) => ({
+          name: item.name,
+          quantity: item.quantity,
+        })),
         address: `${order.address.street}, ${order.address.city}, ${order.address.state}, ${order.address.zipcode}, ${order.address.country}`,
         timestamp: new Date().toISOString(),
       };
@@ -291,11 +327,17 @@ const verifystripe = async (req, res) => {
       await newNotification.save();
 
       const notificationId = newNotification._id;
-      console.log("Notification ID:", notificationId);
 
-      io.emit("newOrderNotification", { ...newNotification.toObject(), notificationId });
+      io.emit("newOrderNotification", {
+        ...newNotification.toObject(),
+        notificationId,
+      });
 
-      const pdfFilePath = path.join(__dirname, "../pdfs", `order_${order._id}.pdf`);
+      const pdfFilePath = path.join(
+        __dirname,
+        "../pdfs",
+        `order_${order._id}.pdf`
+      );
       const htmlContent = `
         <html>
         <body>
@@ -304,7 +346,7 @@ const verifystripe = async (req, res) => {
         </body>
         </html>
       `;
-      
+
       await generatePDF(htmlContent, pdfFilePath);
 
       await sendEmail(
@@ -330,10 +372,15 @@ const verifystripe = async (req, res) => {
         console.error("Error deleting PDF:", unlinkError);
       }
 
-      res.json({ success: true, message: "Payment verified, notification sent, and email sent!" });
+      res.json({
+        success: true,
+        message: "Payment verified, notification sent, and email sent!",
+      });
     } else {
       await orderModel.findByIdAndDelete(orderId);
-      res.status(400).json({ success: false, message: "Payment failed. Order deleted." });
+      res
+        .status(400)
+        .json({ success: false, message: "Payment failed. Order deleted." });
     }
   } catch (error) {
     console.error("Error in verifystripe:", error);
@@ -341,68 +388,53 @@ const verifystripe = async (req, res) => {
   }
 };
 
-
-
-
-
-
 // Displaying orders in admin order page
 
-const allOrders = async (req,res) => {
-    
+const allOrders = async (req, res) => {
   try {
-
-    const orders = await orderModel.find({})
-    res.json({success:true,orders})
-
+    const orders = await orderModel.find({});
+    res.json({ success: true, orders });
   } catch (error) {
     console.log(error);
-    res.json({success:false,message:error.message})
-    
+    res.json({ success: false, message: error.message });
   }
-}
+};
 
 // Displaying orders in user frontend panel in order page after user click on place order button
 
-const userOrders = async (req,res) => {
-    try {
-      
-      const { userId } = req.body
+const userOrders = async (req, res) => {
+  try {
+    const { userId } = req.body;
 
-      const orders = await orderModel.find({ userId })
-      res.json({success:true,orders})
-
-    } catch (error) {
-      console.log(error);
-      res.json({success:false,message:error.message})
-      
-    }
-}
+    const orders = await orderModel.find({ userId });
+    res.json({ success: true, orders });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: error.message });
+  }
+};
 
 // Update order Status from admin
 
-const updateStatus = async (req,res) => {
-
+const updateStatus = async (req, res) => {
   try {
-    
-    const {orderId,status} = req.body
-    await orderModel.findByIdAndUpdate(orderId,{ status })
-    res.json({success:true,message:'Status Updated!'})
+    const { orderId, status } = req.body;
+    await orderModel.findByIdAndUpdate(orderId, { status });
+    res.json({ success: true, message: "Status Updated!" });
   } catch (error) {
     console.log(error);
-    res.json({success:false,message:error.message})
-    
+    res.json({ success: false, message: error.message });
   }
-    
-}
-
+};
 
 // Fetching address from order
 
 const orderAddress = async (req, res) => {
   try {
     if (!req.body.userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized: User ID not found" });
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized: User ID not found" });
     }
 
     const userId = req.body.userId;
@@ -414,19 +446,30 @@ const orderAddress = async (req, res) => {
       .select("address -_id");
 
     if (!latestOrder) {
-      return res.json({ success: true, message: "No address found", address: null });
+      return res.json({
+        success: true,
+        message: "No address found",
+        address: null,
+      });
     }
 
-    res.json({ success: true, message: "Latest address", address: latestOrder.address });
-
+    res.json({
+      success: true,
+      message: "Latest address",
+      address: latestOrder.address,
+    });
   } catch (error) {
     console.log("Error:", error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-
-
-
-
-export {placeOrder,placeOrderStripe,allOrders,updateStatus,userOrders,verifystripe,orderAddress}
+export {
+  placeOrder,
+  placeOrderStripe,
+  allOrders,
+  updateStatus,
+  userOrders,
+  verifystripe,
+  orderAddress,
+};

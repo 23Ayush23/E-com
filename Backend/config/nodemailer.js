@@ -1,13 +1,5 @@
 import nodemailer from "nodemailer";
 
-/**
- * Sends an email with an optional PDF attachment.
- * @param {string} to - Recipient email address.
- * @param {string} subject - Email subject.
- * @param {string} text - Email text content.
- * @param {Object} values - Data to include in the email.
- * @param {string} [pdfAttachment] - Path to the PDF attachment.
- */
 const Nodemailer = async (to, subject, text, values = {}, pdfAttachment = null) => {
   try {
     const html = `

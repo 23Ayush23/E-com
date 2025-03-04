@@ -11,7 +11,6 @@ dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "ayush2323"; // Use environment variable
 const RESET_SECRET = process.env.RESET_SECRET || "bfbskhbkjsdkjfhsjdhfjshjk";
-// Ensure you have this in your env
 
 // Create token for user with userID
 const createToken = (id) => {
@@ -26,7 +25,6 @@ const createAdminToken = (payload) => {
 const sendPasswordLink = async (email) => {
   try {
     const existUser = await userModel.findOne({ email });
-    // console.log("Exist current User: ",existUser);
 
     if (!existUser) {
       return { success: false, message: "User not found with this email!" };
@@ -37,12 +35,8 @@ const sendPasswordLink = async (email) => {
       RESET_SECRET,
       { expiresIn: "60m" }
     );
-    // console.log("resetToken from forgot:",resetToken);
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    // console.log("ResetLink ::  ",resetLink);
-
-    // console.log("Password reset link:", resetLink);
 
     return {
       success: true,
@@ -61,18 +55,8 @@ const sendPasswordLink = async (email) => {
 // Reset password link function
 const resetPasswordLink = async (token, newPassword) => {
   try {
-    // console.log("token before verification:",token);
-    // console.log("reset token",reset_Token);
-    // console.log("reset token",resetToken);
-
     // Verify the token
     const decoded = jwt.verify(token, RESET_SECRET);
-
-    // console.log("Decoded token:", jwt.decode(token));
-
-    // console.log("reset_Token",reset_Token);
-
-    // console.log("decoded token:",decoded);
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
@@ -86,7 +70,6 @@ const resetPasswordLink = async (token, newPassword) => {
       throw new Error("User not found");
     }
 
-    // console.log("Password reset successful!");
     return { success: true, message: "Password reset successfully!" };
   } catch (error) {
     console.log("Error resetting password:", error);
@@ -185,10 +168,8 @@ const adminLogin = async (req, res) => {
       const token = createAdminToken({ email, password });
       return res.json({ success: true, message: "Admin logged in!", token });
     } else {
-      return res
-        .json({ success: false, message: "Unauthorized user!" });
+      return res.json({ success: false, message: "Unauthorized user!" });
     }
-    
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: error.message });
@@ -232,12 +213,10 @@ const forgotPassword = async (req, res) => {
     return res.status(200).json(response);
   } catch (error) {
     console.error("Error in sending password reset email:", error);
-    return res
-      .status(500)
-      .json({
-        success: false,
-        message: "Error in sending password reset email!",
-      });
+    return res.status(500).json({
+      success: false,
+      message: "Error in sending password reset email!",
+    });
   }
 };
 
@@ -245,21 +224,16 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
 
-  // console.log("Received Token in Backend:", token);
-  // console.log("Received New Password:", newPassword);
-
   if (!token || !newPassword) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "Token and new password are required!",
-      });
+    return res.status(400).json({
+      success: false,
+      message: "Token and new password are required!",
+    });
   }
 
   try {
     const response = await resetPasswordLink(token, newPassword);
-    // console.log("Response from resetPasswordLink:", response);
+
     if (response.success) {
       return res.status(200).json(response);
     } else {
@@ -287,7 +261,7 @@ const getUserData = async (req, res) => {
 
     // Verify token (ensure JWT_SECRET is set in your environment)
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // Assuming the token contains the user id as "id"
+
     const userId = decoded.id;
 
     // Find the user by id (all details including password and cartData)
@@ -313,26 +287,30 @@ const getUserData = async (req, res) => {
 };
 
 //Delete User Account from website
-const removeAccount = async (req,res) => {
-    try {
-        const { userId } = req.body;
-        
-        if (!userId) {
-            return res.status(400).json({ success: false, message: "User ID is required!" });
-        }
+const removeAccount = async (req, res) => {
+  try {
+    const { userId } = req.body;
 
-        const user = await userModel.findByIdAndDelete(userId);
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User ID is required!" });
+    }
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found!" });
-        }
+    const user = await userModel.findByIdAndDelete(userId);
 
-        res.json({ success: true, message: "Account deleted successfully!" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: "Server error!" });
-    }  
-}
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found!" });
+    }
+
+    res.json({ success: true, message: "Account deleted successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error!" });
+  }
+};
 export {
   loginUser,
   registerUser,
@@ -340,5 +318,5 @@ export {
   forgotPassword,
   resetPassword,
   getUserData,
-  removeAccount
+  removeAccount,
 };

@@ -1,15 +1,6 @@
 import nodemailer from "nodemailer";
 import fs from "fs/promises";
 
-/**
- * Sends an email using a template file and dynamic values.
- *
- * @param {string} to - Recipient email address.
- * @param {string} subject - Email subject.
- * @param {string} text - Email text content.
- * @param {string} templatePath - Absolute path to the HTML template file.
- * @param {Object} templateValues - Data to replace placeholders in the template.
- */
 const SimpleNodemailer = async (to, subject, text, templatePath, templateValues = {}) => {
   try {
     let html = "";
