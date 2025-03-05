@@ -54,7 +54,7 @@ const addProduct = async (req, res) => {
       name,
       description,
       category,
-      price: Number(price), // Convert price to number
+      price: parseFloat(price), // Convert price to number
       productStock: Number(productStock), // Convert productStock to number
       subCategory,
       bestseller: bestseller === "true" || bestseller === true, // Convert bestseller to boolean

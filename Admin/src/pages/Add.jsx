@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { assets } from '../assets/assets';
 import axios from 'axios';
 import { backendUrl } from '../App.jsx';
-import { ToastContainer, toast } from 'react-toastify';
+import {  toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
@@ -163,10 +163,19 @@ const Add = ({ token }) => {
       </div>
   
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-        <div>
-          <p className="mb-2 font-medium">Product Price</p>
-          <input onChange={(e) => setPrice(e.target.value)} value={price} className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-400" type="number" min="0" placeholder="Enter price" required />
-        </div>
+      <div>
+  <p className="mb-2 font-medium">Product Price</p>
+  <input
+    onChange={(e) => setPrice(e.target.value)}
+    value={price}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-blue-400"
+    type="number"
+    step="0.01" // Allow decimal values
+    min="0"
+    placeholder="Enter price"
+    required
+  />
+</div>
         
         <div>
           <p className="mb-2 font-medium">Product Stock</p>
