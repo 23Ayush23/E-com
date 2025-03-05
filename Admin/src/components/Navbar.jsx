@@ -6,20 +6,16 @@ const Navbar = ({ setToken }) => {
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Load unread count from localStorage on component mount
   useEffect(() => {
+    // Get unread count from local storage on mount
     const storedCount = parseInt(localStorage.getItem("unreadNotifications") || "0", 10);
     setUnreadCount(storedCount);
-  }, []);
 
-  // Listen for custom event to update unread count
-  useEffect(() => {
     const handleUnreadCountUpdate = (e) => {
-      const newCount = e.detail;
-      setUnreadCount(newCount);
-      localStorage.setItem("unreadNotifications", newCount.toString());
+      setUnreadCount(e.detail);
     };
 
+    // Listen for custom event updates
     window.addEventListener("unreadCountUpdated", handleUnreadCountUpdate);
 
     return () => {
@@ -27,13 +23,10 @@ const Navbar = ({ setToken }) => {
     };
   }, []);
 
-  // Listen for changes in localStorage (e.g., from other tabs)
   useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === "unreadNotifications") {
-        const updatedCount = parseInt(e.newValue || "0", 10);
-        setUnreadCount(updatedCount);
-      }
+    const handleStorageChange = () => {
+      const updatedCount = parseInt(localStorage.getItem("unreadNotifications") || "0", 10);
+      setUnreadCount(updatedCount);
     };
 
     window.addEventListener("storage", handleStorageChange);
@@ -43,13 +36,12 @@ const Navbar = ({ setToken }) => {
     };
   }, []);
 
-  // Handle notification icon click
   const handleNotificationClick = () => {
     navigate("/notifications");
     setUnreadCount(0);
     localStorage.setItem("unreadNotifications", "0");
 
-    // Dispatch event to notify other components
+    // Dispatch event so Notification.jsx updates its count
     window.dispatchEvent(new CustomEvent("unreadCountUpdated", { detail: 0 }));
   };
 
