@@ -35,7 +35,7 @@ const Navbar = () => {
   const userInitials = userData?.name
     ? userData.name.substring(0, 1).toUpperCase()
     : "";
-  // console.log(getCartCount());
+  
 
   return (
     <div className="">

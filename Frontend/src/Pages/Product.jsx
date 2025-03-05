@@ -39,7 +39,7 @@ const Product = () => {
   }, [productId, products]);
 
   return productData ? (
-    <div className='border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100'>
+    <div className='border-t-2 pt-10 transition-opacity ease-in duration-500 opacity-100 px-4 sm:px-8 lg:px-16'>
       <div className='flex gap-12 sm:gap-12 flex-col sm:flex-row'>
         {/* Left Side: Images */}
         <div className='flex flex-1 flex-col-reverse gap-3 sm:flex-row'>
@@ -61,7 +61,7 @@ const Product = () => {
         </div>
 
         {/* Right Side: Product Details */}
-        <div className='flex-1'>
+        <div className='flex-1 pl-4 sm:pl-8'>
           <h1 className='font-medium text-2xl mt-2'>{productData.name}</h1>
           <p className='mt-5 text-3xl font-medium'>{currency}{productData.price}</p>
           <p className='mt-5 text-gray-400 w-4/5'>{productData.description}</p>
@@ -97,7 +97,7 @@ const Product = () => {
       </div>
 
       {/* Related Products Section */}
-      <div className='mt-10'>
+      <div className='mt-10 pb-10'>
         <RelatedProduct 
           category={productData.category} 
           subCategory={productData.subCategory} 
