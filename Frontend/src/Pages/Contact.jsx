@@ -16,7 +16,7 @@ const Contact = () => {
         {/* Image on the Left with Zoom Out Hover Effect */}
         <div className="w-full md:w-1/2 flex justify-center">
           <img
-            className="w-[300px] md:w-[450px] rounded-lg shadow-md transition-transform duration-500 hover:scale-95"
+            className="w-[300px] md:w-[450px] rounded-lg shadow-md"
             src={assets.contact_img}
             alt="Contact Us"
           />
