@@ -26,7 +26,7 @@ const Verify = () => {
             );
 
             if (response.data.success) {
-                setcartItems(response);
+                setcartItems(response.data.cartItems);
                 navigate('/order');
             } else {
                 navigate('/cart');

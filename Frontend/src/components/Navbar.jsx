@@ -13,12 +13,13 @@ const Navbar = () => {
     userData,
     adminUrl,
     logoutUser,
+    cartItems
   } = useContext(ShopContext);
 
   useEffect(() => {
     // Fetch cart count again after successful payment
     getCartCount();
-  }, [userData]); // Ensure `userData` updates correctly in the context
+  }, [userData,cartItems]); // Ensure `userData` updates correctly in the context
   
 
   const location = useLocation(); // Get current route
@@ -185,17 +186,17 @@ const Navbar = () => {
 
         {/* Cart Icon */}
         <Link to="/cart" className="relative flex items-center justify-center">
-          <img
-            src={assets.cart_icon}
-            className="w-6 h-6 min-w-6 transition-transform hover:scale-110"
-            alt="Cart"
-            />
-          {getCartCount() > 0 && (
-            <p className="absolute -top-1 -right-2 flex items-center justify-center w-5 h-5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-md">
-              {getCartCount()}
-            </p>
-          )}
-        </Link>
+    <img
+        src={assets.cart_icon}
+        className="w-6 h-6 min-w-6 transition-transform hover:scale-110"
+        alt="Cart"
+    />
+    {getCartCount() > 0 && (
+        <p className="absolute -top-1 -right-2 flex items-center justify-center w-5 h-5 bg-blue-500 text-white text-[10px] font-bold rounded-full shadow-md">
+            {getCartCount()}
+        </p>
+    )}
+</Link>
 
         {/* Mobile Menu Icon */}
         <img
