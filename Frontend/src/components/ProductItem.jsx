@@ -2,7 +2,7 @@ import React, { useContext } from 'react'
 import { ShopContext } from '../context/ShopContext'
 import { Link } from 'react-router-dom'
 
-const ProductItem = ({id,name,image,price,productStock}) => {
+const ProductItem = ({id,name,image,price}) => {
   
     //Accessing currency from shopContext
     const {currency} = useContext(ShopContext)
@@ -16,7 +16,6 @@ const ProductItem = ({id,name,image,price,productStock}) => {
         </div>
         <p className='pt-3 pb-1 text-sm'>{name}</p>
         <p className='text-sm font-medium'>{currency}{price}</p>
-        {/* <p className='text-sm font-medium'>Product Stock:  {productStock}</p> */}
     </Link>
   )
 }

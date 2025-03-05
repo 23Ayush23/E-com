@@ -80,11 +80,7 @@ const Collection = () => {
           applyFilter();
           break;
       }
-        }
-
-  // useEffect(()=>{
-  //   setFilteredProduct(products)
-  // },[products])
+    }
 
   // useEffect for affecting filers: category / subCategory
   useEffect(()=>{
@@ -96,15 +92,7 @@ const Collection = () => {
     sortProduct()
   },[sortType])  
 
-  // useEffect(()=>{
-  //   console.log(category);
-  //   },[category])
-
-  //   useEffect(()=>{
-  //     console.log(subCategory);
-  //     },[subCategory])
-
-
+  
   return (
     <div className='mb-5 bg-[#f4f4f6]'>
     <div className="flex flex-col sm:flex-row gap-1 sm:gap-10 pt-10 border-t">

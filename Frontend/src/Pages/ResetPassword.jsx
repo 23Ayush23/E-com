@@ -17,7 +17,6 @@ const ResetPassword = () => {
 
     if (token) {
       setResetToken(token);
-      // console.log("token",token);
     }else{
       alert("reset token not found")
     }

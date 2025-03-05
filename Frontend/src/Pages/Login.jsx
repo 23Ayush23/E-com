@@ -20,12 +20,12 @@ const Login = () => {
     event.preventDefault();
 
     try {
-      // console.log(backendUrl, 'login');
+   
 
       if (currState === 'Sign Up') {
         // Sign-up API call
         const response = await axios.post(backendUrl + "/api/user/register", { name, email, password });
-        // console.log(response.data);
+      
 
         if (response.data.success) {
           settoken(response.data.token);
