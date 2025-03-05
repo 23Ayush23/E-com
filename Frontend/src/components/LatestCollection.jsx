@@ -6,7 +6,7 @@ import { ShopContext } from '../context/ShopContext';
 const LatestCollection = () => {
     // State for latest products
     const [latestProducts, setLatestProducts] = useState([]);
-    const {backendUrl} = useContext(ShopContext)
+    const { backendUrl } = useContext(ShopContext);
 
     // Fetch latest products from backend
     useEffect(() => {
@@ -26,21 +26,21 @@ const LatestCollection = () => {
         };
 
         fetchLatestProducts();
-    }, []);
+    }, [backendUrl]);
 
     return (
-        <div className='mb-2'>
-            <div className='text-center py-8 text-3xl'>
+        <div className="mb-8 px-4 sm:px-6 lg:px-8"> {/* Added padding for responsiveness */}
+            <div className="text-center py-8">
                 <Title text1={'Latest'} text2={'Collection'} />
-                <p className='w-3/4 m-auto text-xs sm:text-sm md:text-base text-gray-600'>
-                Discover the freshest styles with our Latest Collection, 
-                where fashion meets innovation! Whether you're looking for chic casuals, trendy streetwear,
-                 elegant formals, or comfy athleisure, we’ve got something for every occasion
+                <p className="w-3/4 mx-auto text-xs sm:text-sm md:text-base text-gray-600">
+                    Discover the freshest styles with our Latest Collection,
+                    where fashion meets innovation! Whether you're looking for chic casuals, trendy streetwear,
+                    elegant formals, or comfy athleisure, we’ve got something for every occasion.
                 </p>
             </div>
 
             {/* Rendering Products from ProductItem */}
-            <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-6'>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 gap-y-6">
                 {latestProducts.map((item, index) => (
                     <ProductItem key={index} id={item._id} image={item.image} name={item.name} price={item.price} />
                 ))}
