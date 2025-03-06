@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 
-const socket = io("http://localhost:2500");
+const socket = io(import.meta.env.BACKEND_URL);
 
 const Home = ({ showNotifications }) => {
   const [notifications, setNotifications] = useState([]);
