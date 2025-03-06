@@ -54,8 +54,7 @@ export const io = new Server(server, {
   },
 });
 
-//Handle Preflight Requests (OPTIONS)
-app.options("*", cors(corsOptions));
+
 
 io.on("connection", async (socket) => {
   console.log("User connected:", socket.id);
