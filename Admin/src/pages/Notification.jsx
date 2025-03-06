@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import axios from 'axios';
 
-const socket = io(import.meta.env.VITE_NOTIFICATION_URL);
+const socket = io(import.meta.env.BACKEND_URL);
 
 const Notification = () => {
   const [notifications, setNotifications] = useState([]);
