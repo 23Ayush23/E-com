@@ -11,6 +11,7 @@ const Verify = () => {
 
     const success = searchParams.get('success');
     const orderId = searchParams.get('orderId');
+    const userId = searchParams.get('userId');
 
     const verifyPayment = async () => {
         try {
@@ -21,7 +22,7 @@ const Verify = () => {
 
             const response = await axios.post(
                 `${backendUrl}/api/order/verifyStripe`,
-                { success, orderId },
+                { success, orderId ,userId},
                 { headers: { token } }
             );
 
