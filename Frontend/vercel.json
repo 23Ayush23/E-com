@@ -3,6 +3,8 @@
       {
         "source": "/(.*)",
         "destination": "/"
-      }
+      },
+      { "source": "/favicon.ico", "destination": "/vite.svg" },
+    { "source": "/favicon.png", "destination": "/vite.svg" }
     ]
   }

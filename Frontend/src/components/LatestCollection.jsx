@@ -12,7 +12,7 @@ const LatestCollection = () => {
     useEffect(() => {
         const fetchLatestProducts = async () => {
             try {
-                const response = await fetch(backendUrl + '/api/product/latest'); // Adjust API URL as needed
+                const response = await fetch(`${backendUrl}/api/product/latest`); // Adjust API URL as needed
                 const data = await response.json();
 
                 if (response.ok) {
