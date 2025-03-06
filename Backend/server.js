@@ -11,14 +11,14 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import NotificationModel from "./models/notificationModel.js";
 import path from "path";
-import fevicon from "serve-favicon"
+
 
 
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 2400;
 
-app.use(favicon(path.join(process.cwd(), "public", "favicon.ico")));
+
 // WebSocket Setup
 const server = createServer(app);
 export const io = new Server(server, {
