@@ -43,10 +43,19 @@ const allowedOrigins = [
 ];
 export const io = new Server(server, {
   cors: {
-    origin: "https://frontend-iota-seven-85.vercel.app",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST","DELETE", "PUT", "OPTIONS"],
   },
 });
+
+//Handle Preflight Requests (OPTIONS)
+app.options("*", cors(corsOptions));
 
 io.on("connection", async (socket) => {
   console.log("User connected:", socket.id);
