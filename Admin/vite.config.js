@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/socket.io': {
-        target: 'http://localhost:2500',
+        target: 'https://e-com-psm5.onrender.com',
         ws: true,
         changeOrigin: true
       }

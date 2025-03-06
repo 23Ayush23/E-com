@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 import { toast } from "react-toastify";
 import axios from 'axios';
 
+console.log(import.meta.env.BACKEND_URL );
+
 const socket = io(import.meta.env.BACKEND_URL);
 
 const Notification = () => {
