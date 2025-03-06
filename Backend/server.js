@@ -11,9 +11,6 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import NotificationModel from "./models/notificationModel.js";
 
-
-
-
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 2400;
@@ -87,7 +84,7 @@ io.on("connection", async (socket) => {
 });
 
 // Start WebSocket server
-server.listen(2500, () => {
+server.listen(2400, () => {
   console.log("Socket.io server running on port 2500");
 });
 
