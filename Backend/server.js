@@ -35,9 +35,15 @@ app.use("/api/order", orderRouter);
 
 // WebSocket Setup
 const server = createServer(app);
+
+const allowedOrigins = [
+  "https://frontend-iota-seven-85.vercel.app",
+  process.env.VITE_BACKEND_URL, 
+  process.env.VITE_NOTIFICATION_URL
+];
 export const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: "https://frontend-iota-seven-85.vercel.app",
     methods: ["GET", "POST","DELETE", "PUT", "OPTIONS"],
   },
 });
@@ -85,7 +91,7 @@ io.on("connection", async (socket) => {
 
 // Start WebSocket server
 server.listen(2400, () => {
-  console.log("Socket.io server running on port 2500");
+  console.log("Socket.io server running on port 2400");
 });
 
 
