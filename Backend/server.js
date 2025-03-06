@@ -11,23 +11,22 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import NotificationModel from "./models/notificationModel.js";
 
+dotenv.config();
 const app = express();
 const port = process.env.PORT || 2400;
-dotenv.config();
 
+// WebSocket Setup
 const server = createServer(app);
 export const io = new Server(server, {
   cors: {
-    origin: "*", // Change to your frontend's URL
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
 
-// Socket.io Connection
 io.on("connection", async (socket) => {
-  console.log("User connected:", socket.id);  
+  console.log("User connected:", socket.id);
 
-  // Fetch existing notifications from MongoDB
   try {
     const existingNotifications = await NotificationModel.find()
       .sort({ timestamp: -1 })
@@ -38,8 +37,6 @@ io.on("connection", async (socket) => {
   }
 
   socket.on("orderPlaced", async (orderDetails) => {
-    console.log("New order placed:", orderDetails);
-
     try {
       const newNotification = new NotificationModel({
         message: orderDetails.message,
@@ -48,11 +45,7 @@ io.on("connection", async (socket) => {
       });
 
       await newNotification.save();
-      // console.log("Saved Notification:",newNotification);
-      
-      io.emit("newOrderNotification", { ...newNotification.toObject(), notificationId });
-// console.log("Emitted newOrderNotification:", newNotification.toObject());
-
+      io.emit("newOrderNotification", newNotification.toObject());
     } catch (error) {
       console.error("Error saving notification:", error);
     }
@@ -72,9 +65,9 @@ io.on("connection", async (socket) => {
   });
 });
 
-// Start the WebSocket Server
+// Start WebSocket server
 server.listen(2500, () => {
-  console.log("Socket.io server running on port 2400");
+  console.log("Socket.io server running on port 2500");
 });
 
 // App Config
@@ -84,7 +77,6 @@ connectCloudinary();
 app.use(express.json());
 app.use(cors());
 
-// API Endpoints
 app.get("/", (req, res) => {
   res.send("API Working!");
 });
@@ -95,8 +87,10 @@ app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 
-
 // Start Express Server
 app.listen(port, () =>
   console.log(`Server running successfully on port ${port}`)
 );
+
+// Export Express App for Vercel
+export default app;
