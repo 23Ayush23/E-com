@@ -37,19 +37,23 @@ app.use("/api/order", orderRouter);
 const server = createServer(app);
 
 const allowedOrigins = [
-  "https://frontend-iota-seven-85.vercel.app",
-  process.env.VITE_BACKEND_URL, 
-  process.env.VITE_NOTIFICATION_URL
+  "https://frontend-iota-seven-85.vercel.app", 
+  "https://admin-three-plum.vercel.app",
 ];
 export const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
+      if (!origin) {
+        console.log("CORS Warning: Request with no origin detected.");
+        return callback(null, true); // Allow no-origin requests
+      }
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
       } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(new Error("Not allowed by CORS"));
       }
     },
+    
     methods: ["GET", "POST","DELETE", "PUT", "OPTIONS"],
   },
 });
