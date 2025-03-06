@@ -18,13 +18,30 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 2400;
 
+// App Config
+connectDB();
+connectCloudinary();
+
+app.use(express.json());
+app.use(cors());
+
+app.get("/", (req, res) => {
+  res.send("API Working!");
+});
+
+// Routes
+app.use("/api/user", userRouter);
+app.use("/api/product", productRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter);
+
 
 // WebSocket Setup
 const server = createServer(app);
 export const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST","DELETE", "PUT", "OPTIONS"],
   },
 });
 
@@ -74,27 +91,7 @@ server.listen(2500, () => {
   console.log("Socket.io server running on port 2500");
 });
 
-// App Config
-connectDB();
-connectCloudinary();
 
-app.use(express.json());
-app.use(cors());
-
-app.get("/", (req, res) => {
-  res.send("API Working!");
-});
-
-// Routes
-app.use("/api/user", userRouter);
-app.use("/api/product", productRouter);
-app.use("/api/cart", cartRouter);
-app.use("/api/order", orderRouter);
-
-// Start Express Server
-app.listen(port, () =>
-  console.log(`Server running successfully on port ${port}`)
-);
 
 // Export Express App for Vercel
 export default app;
