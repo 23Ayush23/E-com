@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/socket.io': {
-        target: 'https://e-com-psm5.onrender.com',
+        target: 'https://admin-2-sooty.vercel.app/',
         ws: true,
         changeOrigin: true
       }
