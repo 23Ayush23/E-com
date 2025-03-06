@@ -13,6 +13,8 @@ const NewsletterBox = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
+        console.log("Backend Url:",backendUrl);
+        
         if (user?.email) {
             setEmail(user.email);
             
