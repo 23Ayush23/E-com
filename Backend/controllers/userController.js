@@ -37,6 +37,8 @@ const sendPasswordLink = async (email) => {
     );
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    console.log("Reset link: ",resetLink);
+    
 
     return {
       success: true,
