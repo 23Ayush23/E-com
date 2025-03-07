@@ -130,6 +130,8 @@ const PlaceOrder = () => {
             orderData,
             { headers: { token } }
           );
+          console.log("Headers:",response.headers);
+          
   
           if (response.data.success) {
             setcartItems({});
