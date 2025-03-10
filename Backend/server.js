@@ -11,21 +11,47 @@ import { Server } from "socket.io";
 import { createServer } from "http";
 import NotificationModel from "./models/notificationModel.js";
 
-const app = express();
-const port = process.env.PORT || 2400;
+// Load environment variables
 dotenv.config();
 
+// Initialize Express app
+const app = express();
+const port = process.env.PORT || 2400;
+
+// Create HTTP server for WebSocket
 const server = createServer(app);
+
+// Configure CORS for Express
+const allowedOrigins = [
+  "https://frontend-iota-seven-85.vercel.app", // Your frontend URL
+  "http://localhost:2400", // For local development
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (allowedOrigins.includes(origin) || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
+// Initialize WebSocket server
 export const io = new Server(server, {
   cors: {
-    origin: "*", // Change to your frontend's URL
+    origin: "*", // Allow all origins for WebSocket (or specify your frontend URL)
     methods: ["GET", "POST"],
   },
 });
 
-// Socket.io Connection
+// WebSocket Connection
 io.on("connection", async (socket) => {
-  console.log("User connected:", socket.id);  
+  console.log("User connected:", socket.id);
 
   // Fetch existing notifications from MongoDB
   try {
@@ -37,6 +63,7 @@ io.on("connection", async (socket) => {
     console.error("Error fetching notifications:", error);
   }
 
+  // Handle new order placement
   socket.on("orderPlaced", async (orderDetails) => {
     console.log("New order placed:", orderDetails);
 
@@ -48,16 +75,13 @@ io.on("connection", async (socket) => {
       });
 
       await newNotification.save();
-      // console.log("Saved Notification:",newNotification);
-      
-      io.emit("newOrderNotification", { ...newNotification.toObject(), notificationId });
-// console.log("Emitted newOrderNotification:", newNotification.toObject());
-
+      io.emit("newOrderNotification", newNotification.toObject());
     } catch (error) {
       console.error("Error saving notification:", error);
     }
   });
 
+  // Handle notification removal
   socket.on("removeNotification", async (notificationId) => {
     try {
       await NotificationModel.findByIdAndDelete(notificationId);
@@ -67,22 +91,23 @@ io.on("connection", async (socket) => {
     }
   });
 
+  // Handle user disconnect
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
 
-// Start the WebSocket Server
+// Start WebSocket server
 server.listen(2500, () => {
-  console.log("Socket.io server running on port 2400");
+  console.log("Socket.io server running on port 2500");
 });
 
-// App Config
+// Connect to MongoDB and Cloudinary
 connectDB();
 connectCloudinary();
 
+// Middleware
 app.use(express.json());
-app.use(cors());
 
 // API Endpoints
 app.get("/", (req, res) => {
@@ -95,8 +120,7 @@ app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 
-
-// Start Express Server
-app.listen(port, () =>
-  console.log(`Server running successfully on port ${port}`)
-);
+// Start Express server
+app.listen(port, () => {
+  console.log(`Server running successfully on port ${port}`);
+});

@@ -1,0 +1,58 @@
+{
+    "version": 2,
+    "builds": [
+      {
+        "src": "Backend/Index.js",
+        "use": "@vercel/node"
+      },
+      {
+        "src": "Frontend/package.json",
+        "use": "@vercel/static-build",
+        "config": { "distDir": "Frontend/dist" }
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/(.*)",
+        "destination": "/"
+      },
+      {
+        "source": "/api/(.*)",
+        "destination": "/Backend/Index.js"
+      },
+      {
+        "source": "/shop/:path*",
+        "destination": "/Frontend/dist/index.html"
+      },
+      {
+        "source": "/shop/paypal-return(.*)",
+        "destination": "/Frontend/dist/index.html"
+      },
+      {
+        "source": "/admin/:path*",
+        "destination": "/Frontend/dist/index.html"
+      },
+      {
+        "source": "/:path*",
+        "destination": "/Frontend/dist/index.html"
+      }
+    ]
+  ,
+    "headers": [
+      {
+        "source": "/api/(.*)",
+        "headers": [
+          { "key": "Access-Control-Allow-Credentials", "value": "true" },
+          { "key": "Access-Control-Allow-Origin", "value": "*" },
+          { "key": "Access-Control-Allow-Methods", "value": "GET, OPTIONS, PATCH, DELETE, POST, PUT" },
+          { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Cache-Control" }
+        ]
+      },
+      {
+        "source": "/(.*)",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        ]
+      }
+    ]
+  }

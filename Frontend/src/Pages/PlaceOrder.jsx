@@ -53,7 +53,7 @@ const PlaceOrder = () => {
     getCartCount();  // Ensure cart count updates when `userData` changes
   }, [userData]);
 
-  console.log('nig', userData)
+  // console.log('nig', userData)
   
 
   const onSubmithandler = async (event) => {
