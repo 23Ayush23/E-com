@@ -5,35 +5,40 @@ import axios from 'axios';
 
 const Order = () => {
   const { backendUrl, token, currency } = useContext(ShopContext);
-  const [orderData, setorderData] = useState([]);
+  const [orderData, setOrderData] = useState([]);
 
   // Load user order data
   const loadOrderData = async () => {
-    if (!token) {
-      return null;
-    }
+    if (!token) return;
 
-    const response = await axios.post(backendUrl + '/api/order/userorders', {}, { headers: { token } });
+    try {
+      const response = await axios.post(`${backendUrl}/api/order/userorders`, {}, { headers: { token } });
 
-    if (response.data.success) {
-      let allorderitem = [];
-      response.data.orders.forEach((order) => {
-        order.items.forEach((item) => {
-          item['status'] = order.status;
-          item['payment'] = order.payment;
-          item['paymentMethod'] = order.paymentMethod;
-          item['date'] = order.date;
-          allorderitem.push(item);
+      if (response.data.success) {
+        let allOrderItems = [];
+
+        response.data.orders.forEach((order) => {
+          order.items.forEach((item) => {
+            allOrderItems.push({
+              ...item,
+              status: order.status,
+              payment: order.payment,
+              paymentMethod: order.paymentMethod,
+              date: order.date,
+            });
+          });
         });
-      });
 
-      const filteredOrders = allorderitem.filter(item=> item.status !== "Delivered")
-      setorderData(filteredOrders.reverse());
+        // Filter non-delivered orders and reverse the order list
+        const filteredOrders = allOrderItems.filter(item => item.status !== "Delivered");
+        setOrderData(filteredOrders.reverse());
+      }
+    } catch (error) {
+      console.error("Error loading orders:", error);
     }
   };
 
   useEffect(() => {
-    
     loadOrderData();
   }, [token]);
 
@@ -46,6 +51,7 @@ const Order = () => {
       <div className="space-y-6">
         {orderData.map((item, index) => (
           <div key={index} className="py-6 border-t border-b flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            
             {/* Left: Product Image & Details */}
             <div className="flex items-start gap-4 w-full">
               <img src={item.image[0]} alt={item.name} className="w-20 h-20 object-cover rounded-lg border" />
@@ -63,22 +69,14 @@ const Order = () => {
 
             {/* Right: Status & Track Order */}
             <div className="flex flex-col md:flex-row md:items-center md:w-1/2 md:justify-between gap-4">
-  <div className="flex items-center gap-2">
-    <span
-      className={`w-3 h-3 rounded-full ${
-        item.status === "Delivered" ? "bg-green-500" : "bg-yellow-400"
-      }`}
-    ></span>
-    <p className="text-sm md:text-base font-medium">{item.status}</p>
-  </div>
-  <button
-    onClick={loadOrderData}
-    className="border px-5 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition"
-  >
-    Track Order
-  </button>
-</div>
-
+              <div className="flex items-center gap-2">
+                <span className={`w-3 h-3 rounded-full ${item.status === "Delivered" ? "bg-green-500" : "bg-yellow-400"}`}></span>
+                <p className="text-sm md:text-base font-medium">{item.status}</p>
+              </div>
+              <button onClick={loadOrderData} className="border px-5 py-2 text-sm font-medium rounded-md hover:bg-gray-100 transition">
+                Track Order
+              </button>
+            </div>
           </div>
         ))}
       </div>
