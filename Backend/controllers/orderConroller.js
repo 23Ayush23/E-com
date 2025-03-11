@@ -406,13 +406,22 @@ const userOrders = async (req, res) => {
   try {
     const { userId } = req.body;
 
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
     const orders = await orderModel.find({ userId });
-    res.json({ success: true, orders });
+
+    return res.status(200).json({ success: true, orders }); // ✅ Use return
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: error.message });
+    console.error("Error fetching user orders:", error);
+
+    if (!res.headersSent) { // ✅ Prevent duplicate responses
+      return res.status(500).json({ success: false, message: "Internal server error" });
+    }
   }
 };
+
 
 // Update order Status from admin
 
