@@ -24,6 +24,7 @@ const server = createServer(app);
 // ✅ Improved CORS Configuration
 const allowedOrigins = [
   "https://frontend-iota-seven-85.vercel.app", // Your frontend URL
+  "https://admin-2-sooty.vercel.app/",
   "http://localhost:5173", // For local development (Vite)
   "http://localhost:3000", // For local development (React)
 ];
