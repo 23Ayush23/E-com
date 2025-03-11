@@ -187,7 +187,7 @@ const placeOrder = async (req, res) => {
       </html>
     `;
 
-    await generatePDF(htmlContent, pdfFilePath);
+//    await generatePDF(htmlContent, pdfFilePath);
 
     await sendEmail(
       email,
@@ -202,7 +202,7 @@ const placeOrder = async (req, res) => {
         address: { street, city, state, zipcode, country },
         items: newOrder.items,
       },
-      pdfFilePath
+//      pdfFilePath
     );
 
     try {
@@ -347,7 +347,7 @@ const verifystripe = async (req, res) => {
         </html>
       `;
 
-      await generatePDF(htmlContent, pdfFilePath);
+//      await generatePDF(htmlContent, pdfFilePath);
 
       await sendEmail(
         order.address.email,
@@ -362,7 +362,7 @@ const verifystripe = async (req, res) => {
           address: order.address,
           items: order.items,
         },
-        pdfFilePath
+//        pdfFilePath
       );
 
       try {
