@@ -24,7 +24,7 @@ const server = createServer(app);
 // Configure CORS for Express
 const allowedOrigins = [
   "https://e-com-1-glqf.onrender.com", 
-  "https://admin-2-sooty.vercel.app",
+  "https://e-com-2iy7.onrender.com",
   "http://localhost:2400", // For local development
 ];
 
