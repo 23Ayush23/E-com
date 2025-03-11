@@ -21,37 +21,55 @@ const port = process.env.PORT || 2400;
 // Create HTTP server for WebSocket
 const server = createServer(app);
 
-// Configure CORS for Express
+// ✅ Improved CORS Configuration
 const allowedOrigins = [
   "https://frontend-iota-seven-85.vercel.app", // Your frontend URL
-  "http://localhost:2400", // For local development
+  "http://localhost:5173", // For local development (Vite)
+  "http://localhost:3000", // For local development (React)
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
       }
     },
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Ensure OPTIONS is handled
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   })
 );
 
-// Initialize WebSocket server
+// ✅ Handle Preflight (OPTIONS) Requests
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.sendStatus(200);
+});
+
+// ✅ Logging Middleware for Debugging
+app.use((req, res, next) => {
+  console.log("➡️ Incoming request:", req.method, req.url);
+  console.log("📝 Request Headers:", req.headers);
+  next();
+});
+
+// ✅ Initialize WebSocket server
 export const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins for WebSocket (or specify your frontend URL)
+    origin: allowedOrigins, // Allow only specified frontend origins
     methods: ["GET", "POST"],
   },
 });
 
-// WebSocket Connection
+// ✅ WebSocket Connection
 io.on("connection", async (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("🔵 User connected:", socket.id);
 
   // Fetch existing notifications from MongoDB
   try {
@@ -60,12 +78,12 @@ io.on("connection", async (socket) => {
       .limit(20);
     socket.emit("loadNotifications", existingNotifications);
   } catch (error) {
-    console.error("Error fetching notifications:", error);
+    console.error("❌ Error fetching notifications:", error);
   }
 
   // Handle new order placement
   socket.on("orderPlaced", async (orderDetails) => {
-    console.log("New order placed:", orderDetails);
+    console.log("🛒 New order placed:", orderDetails);
 
     try {
       const newNotification = new NotificationModel({
@@ -77,7 +95,7 @@ io.on("connection", async (socket) => {
       await newNotification.save();
       io.emit("newOrderNotification", newNotification.toObject());
     } catch (error) {
-      console.error("Error saving notification:", error);
+      console.error("❌ Error saving notification:", error);
     }
   });
 
@@ -87,40 +105,40 @@ io.on("connection", async (socket) => {
       await NotificationModel.findByIdAndDelete(notificationId);
       io.emit("notificationRemoved", notificationId);
     } catch (error) {
-      console.error("Error removing notification:", error);
+      console.error("❌ Error removing notification:", error);
     }
   });
 
   // Handle user disconnect
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log("🔴 User disconnected:", socket.id);
   });
 });
 
-// Start WebSocket server
+// ✅ Start WebSocket server
 server.listen(2500, () => {
-  console.log("Socket.io server running on port 2500");
+  console.log("⚡ WebSocket server running on port 2500");
 });
 
-// Connect to MongoDB and Cloudinary
+// ✅ Connect to MongoDB and Cloudinary
 connectDB();
 connectCloudinary();
 
-// Middleware
+// ✅ Middleware
 app.use(express.json());
 
-// API Endpoints
+// ✅ API Endpoints
 app.get("/", (req, res) => {
-  res.send("API Working!");
+  res.send("🚀 API Working!");
 });
 
-// Routes
+// ✅ Routes
 app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 
-// Start Express server
+// ✅ Start Express server
 app.listen(port, () => {
-  console.log(`Server running successfully on port ${port}`);
+  console.log(`✅ Server running successfully on port ${port}`);
 });
