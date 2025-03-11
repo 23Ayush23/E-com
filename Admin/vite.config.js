@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [tailwindcss()],
   server: {
-    port: process.env.PORT || 5174,  // Match frontend port for consistency
+    port: process.env.PORT || 5173,  // Match frontend port for consistency
     host: "0.0.0.0",
     strictPort: true,
     allowedHosts: ["e-com-1-glqf.onrender.com"], // Match frontend allowedHosts
