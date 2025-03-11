@@ -99,9 +99,10 @@ io.on("connection", async (socket) => {
 });
 
 // Start WebSocket server
-server.listen(2500, () => {
-  console.log("Socket.io server running on port 2500");
+server.listen(port, () => {
+  console.log(`Server running successfully on port ${port}`);
 });
+
 
 // Connect to MongoDB and Cloudinary
 connectDB();
@@ -120,8 +121,3 @@ app.use("/api/user", userRouter);
 app.use("/api/product", productRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
-
-// Start Express server
-app.listen(port, () => {
-  console.log(`Server running successfully on port ${port}`);
-});
