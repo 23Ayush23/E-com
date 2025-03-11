@@ -7,7 +7,7 @@ export default defineConfig({
     port: process.env.PORT || 5173,  // Match frontend port for consistency
     host: "0.0.0.0",
     strictPort: true,
-    allowedHosts: ["e-com-1-glqf.onrender.com"], // Match frontend allowedHosts
+    allowedHosts: ["e-com-2iy7.onrender.com"], // Match frontend allowedHosts
     proxy: {
       '/socket.io': {
         target: 'http://localhost:2400',
