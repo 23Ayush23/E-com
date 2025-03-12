@@ -8,10 +8,20 @@ const NewsletterBox = () => {
     const { backendUrl, user } = useContext(ShopContext);
     const [email, setEmail] = useState(user?.email || "");
     const [isSubscribed, setIsSubscribed] = useState(() => {
+        if (typeof window === "undefined") return false; // Handle SSR
         const storedValue = localStorage.getItem("isSubscribed");
-        return storedValue ? JSON.parse(storedValue) : false;
+        if (storedValue === null || storedValue === undefined || storedValue === "undefined") {
+            return false;
+        }
+        try {
+            return JSON.parse(storedValue);
+        } catch (error) {
+            console.error("Error parsing stored subscription value:", error);
+            return false;
+        }
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
 
     useEffect(() => {
         if (user?.email) {
@@ -19,17 +29,24 @@ const NewsletterBox = () => {
 
             // Only check subscription if it’s not already stored in localStorage
             const storedSubscription = localStorage.getItem("isSubscribed");
-            if (storedSubscription === null) {
+            if (storedSubscription === null || storedSubscription === undefined || storedSubscription === "undefined") {
                 checkSubscription(user.email);
             } else {
-                setIsSubscribed(JSON.parse(storedSubscription));
+                try {
+                    setIsSubscribed(JSON.parse(storedSubscription));
+                } catch (error) {
+                    console.error("Error parsing stored subscription value:", error);
+                    setIsSubscribed(false);
+                }
             }
         }
-    }, [user]);
+    }, [user, backendUrl, user?.token]);
 
     const checkSubscription = async (email) => {
+        setIsCheckingSubscription(true);
         try {
             const response = await axios.get(`${backendUrl}/api/user/check-subscription`, {
+                params: { email },
                 headers: { Authorization: `Bearer ${user?.token}` },
             });
 
@@ -38,13 +55,16 @@ const NewsletterBox = () => {
             localStorage.setItem("isSubscribed", JSON.stringify(subscribed));
         } catch (error) {
             console.error("Error checking subscription:", error);
+        } finally {
+            setIsCheckingSubscription(false);
         }
     };
 
     const onSubmitHandler = async (e) => {
         e.preventDefault();
 
-        if (!email) {
+        const trimmedEmail = email.trim();
+        if (!trimmedEmail) {
             toast.error("Please enter a valid email.");
             return;
         }
@@ -54,7 +74,7 @@ const NewsletterBox = () => {
         try {
             const response = await axios.post(
                 `${backendUrl}/api/user/subscribe`,
-                { email },
+                { email: trimmedEmail },
                 { headers: { Authorization: `Bearer ${user?.token}` } }
             );
 
@@ -109,7 +129,7 @@ const NewsletterBox = () => {
                             <button 
                                 type='submit' 
                                 className='bg-black text-white text-xs px-10 py-4'
-                                disabled={!email || isSubmitting}
+                                disabled={!email.trim() || isSubmitting || isCheckingSubscription}
                             >
                                 {isSubmitting ? "Subscribing..." : "Subscribe!"}
                             </button>
