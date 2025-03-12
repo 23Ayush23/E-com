@@ -7,21 +7,22 @@ import { ShopContext } from '../context/ShopContext';
 const NewsletterBox = () => {
     const { backendUrl, user } = useContext(ShopContext);
     const [email, setEmail] = useState(user?.email || "");
-    const [isSubscribed, setIsSubscribed] = useState(
-        JSON.parse(localStorage.getItem("isSubscribed")) || false
-    );
+    const [isSubscribed, setIsSubscribed] = useState(() => {
+        const storedValue = localStorage.getItem("isSubscribed");
+        return storedValue ? JSON.parse(storedValue) : false;
+    });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (user?.email) {
             setEmail(user.email);
-            
+
             // Only check subscription if it’s not already stored in localStorage
-            const storedSubscription = JSON.parse(localStorage.getItem("isSubscribed"));
+            const storedSubscription = localStorage.getItem("isSubscribed");
             if (storedSubscription === null) {
                 checkSubscription(user.email);
             } else {
-                setIsSubscribed(storedSubscription);
+                setIsSubscribed(JSON.parse(storedSubscription));
             }
         }
     }, [user]);
@@ -32,13 +33,9 @@ const NewsletterBox = () => {
                 headers: { Authorization: `Bearer ${user?.token}` },
             });
 
-            if (response.data.isSubscribed) {
-                setIsSubscribed(true);
-                localStorage.setItem("isSubscribed", JSON.stringify(true));
-            } else {
-                setIsSubscribed(false);
-                localStorage.setItem("isSubscribed", JSON.stringify(false));
-            }
+            const subscribed = response.data.isSubscribed;
+            setIsSubscribed(subscribed);
+            localStorage.setItem("isSubscribed", JSON.stringify(subscribed));
         } catch (error) {
             console.error("Error checking subscription:", error);
         }
@@ -64,7 +61,7 @@ const NewsletterBox = () => {
             toast.success(response.data.message);
             setIsSubscribed(true);
             localStorage.setItem("isSubscribed", JSON.stringify(true));
-            setEmail(""); 
+            setEmail("");
         } catch (error) {
             if (error.response?.status === 409) {
                 toast.info("You are already subscribed!");
@@ -79,48 +76,48 @@ const NewsletterBox = () => {
     };
 
     return (
-    <div className='bg-[#e9ecef] pt-10'>
-        <div className='text-center'>
-            <p className='text-2xl font-medium text-gray-800'>
-                Subscribe now & get 20% Off !!
-            </p>
-            <p className='text-gray-400 mt-3'>
-                Connect with us and get more upcoming benefits
-            </p>
-            <form 
-                onSubmit={onSubmitHandler} 
-                className='w-full sm:w-1/2 flex items-center mx-auto  border'
-            >
-                {isSubscribed ? (
-                    <button 
-                        type='button' 
-                        className='bg-black text-white text-lg w-full py-4 text-center cursor-not-allowed opacity-70 mb-10'
-                        disabled
-                    >
-                        Thanks for Subscription!
-                    </button>
-                ) : (
-                    <div className='w-full flex items-center'>
-                        <input
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="Enter your email"
-                            className="w-full p-2 border-none outline-none"
-                            required
-                        />
+        <div className='bg-[#e9ecef] pt-10'>
+            <div className='text-center'>
+                <p className='text-2xl font-medium text-gray-800'>
+                    Subscribe now & get 20% Off !!
+                </p>
+                <p className='text-gray-400 mt-3'>
+                    Connect with us and get more upcoming benefits
+                </p>
+                <form 
+                    onSubmit={onSubmitHandler} 
+                    className='w-full sm:w-1/2 flex items-center mx-auto border'
+                >
+                    {isSubscribed ? (
                         <button 
-                            type='submit' 
-                            className='bg-black text-white text-xs px-10 py-4'
-                            disabled={!email || isSubmitting}
+                            type='button' 
+                            className='bg-black text-white text-lg w-full py-4 text-center cursor-not-allowed opacity-70 mb-10'
+                            disabled
                         >
-                            {isSubmitting ? "Subscribing..." : "Subscribe!"}
+                            Thanks for Subscription!
                         </button>
-                    </div>
-                )}
-            </form>
+                    ) : (
+                        <div className='w-full flex items-center'>
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Enter your email"
+                                className="w-full p-2 border-none outline-none"
+                                required
+                            />
+                            <button 
+                                type='submit' 
+                                className='bg-black text-white text-xs px-10 py-4'
+                                disabled={!email || isSubmitting}
+                            >
+                                {isSubmitting ? "Subscribing..." : "Subscribe!"}
+                            </button>
+                        </div>
+                    )}
+                </form>
+            </div>
         </div>
-    </div>
     );
 };
 

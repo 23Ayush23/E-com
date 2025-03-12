@@ -8,6 +8,6 @@ export default defineConfig({
     port: process.env.PORT || 5174,
     host: "0.0.0.0",
     strictPort: true,
-    allowedHosts: ["e-com-1-glqf.onrender.com"], // Allow your deployed Render domain
+    allowedHosts: ["e-com-1-glqf.onrender.com"], 
   }
 })
