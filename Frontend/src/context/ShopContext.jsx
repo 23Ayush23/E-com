@@ -13,9 +13,14 @@ const ShopContextProvider = (props) => {
 
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  // const [cartItems, setcartItems] = useState(() => {
+  //   return JSON.parse(localStorage.getItem("cartItems")) || {};
+  // });
   const [cartItems, setcartItems] = useState(() => {
-    return JSON.parse(localStorage.getItem("cartItems")) || {};
-  });
+    const storedCart = localStorage.getItem("cartItems");
+    return storedCart ? JSON.parse(storedCart) : {};
+});
+
   const [products, setProducts] = useState([]);
   const [token, settoken] = useState(localStorage.getItem("token") || "");
   const [user, setUser] = useState(() => {
