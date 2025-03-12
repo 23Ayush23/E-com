@@ -17,9 +17,23 @@ const ShopContextProvider = (props) => {
   //   return JSON.parse(localStorage.getItem("cartItems")) || {};
   // });
   const [cartItems, setcartItems] = useState(() => {
-    const storedCart = localStorage.getItem("cartItems");
-    return storedCart ? JSON.parse(storedCart) : {};
-});
+    try {
+      let storedCart = localStorage.getItem("cartItems");
+  
+      // If cartItems is stored as "undefined", remove it from localStorage
+      if (storedCart === "undefined") {
+        localStorage.removeItem("cartItems");
+        return {}; // Return an empty object as default
+      }
+  
+      return storedCart ? JSON.parse(storedCart) : {};
+    } catch (error) {
+      console.error("Error parsing cartItems from localStorage:", error);
+      return {};
+    }
+  });
+  
+  
 
   const [products, setProducts] = useState([]);
   const [token, settoken] = useState(localStorage.getItem("token") || "");
