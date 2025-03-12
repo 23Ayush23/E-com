@@ -54,7 +54,7 @@ const Cart = () => {
   };
 
   return (
-    <div className="border-t pt-14">
+    <div className="border-t pt-14 pl-5 pr-5">
       <div className="text-4xl mb-3">
         <Title text1={"Your "} text2={" CART"} />
       </div>
