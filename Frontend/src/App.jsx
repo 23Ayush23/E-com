@@ -31,7 +31,7 @@ const App = () => {
   const shouldHideElements = hideElementsOnRoutes.includes(location.pathname);
 
   return (
-    <div className="sm:px-[0.25vw] md:px-[0.25vw] lg:px-[0.25vw] ">
+    <div>
       <ToastContainer />
       
       {/* Conditionally render Navbar and Searchbar */}
