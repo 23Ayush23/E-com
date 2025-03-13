@@ -24,13 +24,30 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const placeOrder = async (req, res) => {
   try {
     const { userId, items, address, amount } = req.body;
+    const {
+      firstname,
+      lastname,
+      email,
+      street,
+      city,
+      state,
+      zipcode,
+      country,
+    } = address;
+
     if (!userId || !items || items.length === 0 || !address || !amount) {
-      return res.status(400).json({ success: false, message: "Invalid order data" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid order data" });
     }
 
+    // **Check for missing itemId BEFORE database operations**
     for (const item of items) {
       if (!item.itemId || typeof item.itemId !== "string") {
-        return res.status(400).json({ success: false, message: `Invalid item ID for product: ${item.name}` });
+        return res.status(400).json({
+          success: false,
+          message: `Invalid item ID for product: ${item.name}`,
+        });
       }
     }
 
@@ -48,11 +65,12 @@ const placeOrder = async (req, res) => {
     await newOrder.save();
     await userModel.findByIdAndUpdate(userId, { cartData: {} });
 
+    // **Update stock in parallel using Promise.all**
     await Promise.all(
       items.map(async (item) => {
         const updatedProduct = await productModel.findByIdAndUpdate(
           item.itemId,
-          { $inc: { productStock: -item.quantity } },
+          { $inc: { productStock: -item.quantity } }, // Atomically decrement stock
           { new: true }
         );
 
@@ -61,63 +79,142 @@ const placeOrder = async (req, res) => {
         }
 
         if (updatedProduct.productStock < 0) {
-          throw new Error(`Insufficient stock for product: ${updatedProduct.name}`);
+          throw new Error(
+            `Insufficient stock for product: ${updatedProduct.name}`
+          );
         }
       })
     );
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.json({ success: false, message: "User not found" });
-    }
-
+    // **Save notification to the database with `order` field**
     const notificationData = {
-      order: newOrder._id,
-      message: `New Order received from ${user.userName}`,
+      order: newOrder._id, // Ensure order ID is included
+      message: `New Order received from ${firstname} ${lastname}`,
       orderId: newOrder._id,
       amount: newOrder.amount,
-      items: newOrder.items.map((item) => ({ name: item.name, quantity: item.quantity })),
-      address: `${address.street}, ${address.city}, ${address.state}, ${address.zipcode}, ${address.country}`,
+      items: newOrder.items.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+      })),
+      address: `${street}, ${city}, ${state}, ${zipcode}, ${country}`,
       timestamp: new Date().toISOString(),
     };
 
     const newNotification = new NotificationModel(notificationData);
     await newNotification.save();
 
+    const notificationId = newNotification._id; // Ensure notification ID is included
+
+    // **Include `notificationId` in response**
     res.json({
       success: true,
       message: "Order Placed Successfully!",
       orderId: newOrder._id,
-      notificationId: newNotification._id,
+      notificationId, // Added notification ID in response
     });
 
-    io.emit("newOrderNotification", { ...newNotification.toObject(), notificationId: newNotification._id });
+    //Emit notification to the admin panel using Socket.io
+    io.emit("newOrderNotification", {
+      ...newNotification.toObject(),
+      notificationId,
+    });
+
+    // Generate order confirmation email with PDF invoice
+    const pdfFilePath = path.join(
+      __dirname,
+      "../pdfs",
+      `order_${newOrder._id}.pdf`
+    );
+
+    const htmlContent = ` 
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+          .container { width: 80%; max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); }
+          .header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #007bff; }
+          .header h2 { color: #007bff; margin: 0; }
+          .content { padding: 20px 0; }
+          .content p { font-size: 16px; color: #333; line-height: 1.5; }
+          .order-details { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 10px; }
+          .order-details h3 { color: #007bff; margin-bottom: 10px; }
+          .order-details p { font-size: 14px; margin: 5px 0; }
+          .shipping-address { background-color: #eef7ff; padding: 10px; border-radius: 5px; margin-top: 10px; }
+          .items-list { margin-top: 10px; padding: 10px; background-color: #f9f9f9; border-radius: 5px; }
+          .items-list ul { padding: 0; list-style: none; }
+          .items-list li { background: #fff; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid #ddd; }
+          .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 14px; color: #666; }
+          .footer a { color: #007bff; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h2>Order Confirmation</h2></div>
+          <div class="content">
+            <p>Dear <strong>${firstname} ${lastname}</strong>,</p>
+            <p>Thank you for your order! Below are your order details:</p>
+            <div class="order-details">
+              <h3>Order Details</h3>
+              <p><strong>Order ID:</strong> ${newOrder._id}</p>
+              <p><strong>Payment Method:</strong> ${newOrder.paymentMethod}</p>
+              <p><strong>Amount Paid:</strong> <span style="color: #28a745;">$${
+                newOrder.amount
+              }</span></p>
+            </div>
+            <div class="shipping-address">
+              <h3>Shipping Address</h3>
+              <p>${street}, ${city}, ${state}, ${zipcode}, ${country}</p>
+            </div>
+            <div class="items-list">
+              <h3>Items Ordered:</h3>
+              <ul>
+                ${items
+                  .map(
+                    (item) =>
+                      `<li><strong>${item.name}</strong> (x${item.quantity}) - <span style="color: #28a745;">$${item.price}</span></li>`
+                  )
+                  .join("")}
+              </ul>
+            </div>
+            <p>We appreciate your business and hope to serve you again soon!</p>
+          </div>
+          <div class="footer">
+            <p>Need help? <a href="mailto:support@yourshop.com">Contact Support</a></p>
+            <p>&copy; ${new Date().getFullYear()} YourShop. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+   await generatePDF(htmlContent, pdfFilePath);
+
+    await sendEmail(
+      email,
+      "Payment Successful for Your Order",
+      "Order Details",
+      {
+        _id: newOrder._id,
+        firstname,
+        lastname,
+        paymentMethod: newOrder.paymentMethod,
+        amount: newOrder.amount,
+        address: { street, city, state, zipcode, country },
+        items: newOrder.items,
+      },
+     pdfFilePath
+    );
 
     try {
-      const pdfBuffer = await generatePdf(newOrder);
-      await sendEmail(
-        user.email,
-        "Payment Successful for Your Order",
-        "Order Details",
-        {
-          _id: newOrder._id,
-          userName: user.userName,
-          paymentMethod: newOrder.paymentMethod,
-          amount: newOrder.amount,
-          address: address,
-          items: newOrder.items,
-        },
-        pdfBuffer
-      );
-    } catch (pdfError) {
-      console.error("Error generating or sending PDF:", pdfError);
+      await fs.unlink(pdfFilePath);
+    } catch (unlinkError) {
+      console.error("Error deleting PDF:", unlinkError);
     }
   } catch (error) {
     console.error("Error in placeOrder:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 export default placeOrder;
 
@@ -250,7 +347,7 @@ const verifystripe = async (req, res) => {
         </html>
       `;
 
-//      await generatePDF(htmlContent, pdfFilePath);
+     await generatePDF(htmlContent, pdfFilePath);
 
       await sendEmail(
         order.address.email,
@@ -265,7 +362,7 @@ const verifystripe = async (req, res) => {
           address: order.address,
           items: order.items,
         },
-//        pdfFilePath
+       pdfFilePath
       );
 
       try {

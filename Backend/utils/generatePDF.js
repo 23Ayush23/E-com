@@ -1,31 +1,32 @@
-import puppeteer from "puppeteer";
+import pdf from "html-pdf";
 import path from "path";
+import { path as phantomPath } from "phantomjs-prebuilt";
 
-const generatePDF = async (htmlContent, outputFilePath) => {
-  try {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-
+const generatePDF = (htmlContent, outputFilePath) => {
+  return new Promise((resolve, reject) => {
     console.log("Generating PDF...");
 
-    await page.setContent(htmlContent, { waitUntil: "domcontentloaded" });
-
-    await page.emulateMediaType("screen");
-
-    await page.pdf({
-      path: path.resolve(outputFilePath),
-      margin: { top: "50px", right: "50px", bottom: "50px", left: "50px" },
-      printBackground: true,
+    const options = {
       format: "A4",
-    });
+      border: {
+        top: "50px",
+        right: "50px",
+        bottom: "50px",
+        left: "50px"
+      },
+      phantomPath, // Use imported PhantomJS path
+      timeout: 30000 // Optional timeout
+    };
 
-    await browser.close();
-    console.log(`PDF successfully generated: ${outputFilePath}`);
-    return outputFilePath;
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-    throw error;
-  }
+    pdf.create(htmlContent, options).toFile(path.resolve(outputFilePath), (err, res) => {
+      if (err) {
+        console.error("Error generating PDF:", err);
+        return reject(err);
+      }
+      console.log(`PDF successfully generated: ${res.filename}`);
+      resolve(res.filename);
+    });
+  });
 };
 
 export default generatePDF;
