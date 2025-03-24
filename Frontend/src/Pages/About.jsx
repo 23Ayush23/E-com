@@ -69,7 +69,7 @@ const About = () => {
             <li className="text-gray-700">
               <b>Building Trust and Transparency:</b> We aim to foster long-term
               relationships with our customers by maintaining honest and
-              transparent business practices.
+              transparent business practice.
             </li>
           </ul>
         </div>
