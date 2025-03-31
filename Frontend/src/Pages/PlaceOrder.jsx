@@ -186,7 +186,7 @@ const PlaceOrder = () => {
   
 
   return (
-    <div>
+    <div className="mx-4 sm:mx-8 lg:mx-auto max-w-6xl">
       <form
         onSubmit={onSubmithandler}
         className="flex flex-col sm:flex-row justify-between gap-4 pt-5 sm:pt-14 min-h-[80vh] border-t"
