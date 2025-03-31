@@ -340,11 +340,63 @@ const verifystripe = async (req, res) => {
       );
       const htmlContent = `
         <html>
-        <body>
-          <h2>Order Confirmation</h2>
-          <p>Order ID: ${order._id}</p>
-        </body>
-        </html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
+          .container { width: 80%; max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); }
+          .header { text-align: center; padding-bottom: 15px; border-bottom: 2px solid #007bff; }
+          .header h2 { color: #007bff; margin: 0; }
+          .content { padding: 20px 0; }
+          .content p { font-size: 16px; color: #333; line-height: 1.5; }
+          .order-details { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-top: 10px; }
+          .order-details h3 { color: #007bff; margin-bottom: 10px; }
+          .order-details p { font-size: 14px; margin: 5px 0; }
+          .shipping-address { background-color: #eef7ff; padding: 10px; border-radius: 5px; margin-top: 10px; }
+          .items-list { margin-top: 10px; padding: 10px; background-color: #f9f9f9; border-radius: 5px; }
+          .items-list ul { padding: 0; list-style: none; }
+          .items-list li { background: #fff; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid #ddd; }
+          .footer { text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 14px; color: #666; }
+          .footer a { color: #007bff; text-decoration: none; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header"><h2>Order Confirmation</h2></div>
+          <div class="content">
+            <p>Dear <strong>${firstname} ${lastname}</strong>,</p>
+            <p>Thank you for your order! Below are your order details:</p>
+            <div class="order-details">
+              <h3>Order Details</h3>
+              <p><strong>Order ID:</strong> ${newOrder._id}</p>
+              <p><strong>Payment Method:</strong> ${newOrder.paymentMethod}</p>
+              <p><strong>Amount Paid:</strong> <span style="color: #28a745;">$${
+                newOrder.amount
+              }</span></p>
+            </div>
+            <div class="shipping-address">
+              <h3>Shipping Address</h3>
+              <p>${street}, ${city}, ${state}, ${zipcode}, ${country}</p>
+            </div>
+            <div class="items-list">
+              <h3>Items Ordered:</h3>
+              <ul>
+                ${items
+                  .map(
+                    (item) =>
+                      `<li><strong>${item.name}</strong> (x${item.quantity}) - <span style="color: #28a745;">$${item.price}</span></li>`
+                  )
+                  .join("")}
+              </ul>
+            </div>
+            <p>We appreciate your business and hope to serve you again soon!</p>
+          </div>
+          <div class="footer">
+            <p>Need help? <a href="mailto:support@yourshop.com">Contact Support</a></p>
+            <p>&copy; ${new Date().getFullYear()} YourShop. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
       `;
 
      await generatePDF(htmlContent, pdfFilePath);
