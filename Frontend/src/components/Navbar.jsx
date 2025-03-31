@@ -122,7 +122,7 @@ const Navbar = () => {
 
 
         {/* Admin Button - Visible only if user exists */}
-        {userInitials && (
+        {!userInitials && (
           <button
           onClick={handleAdminClick}
           className="hidden sm:block group relative inline-flex items-center justify-start overflow-hidden rounded-full px-3 py-1 font-bold"
